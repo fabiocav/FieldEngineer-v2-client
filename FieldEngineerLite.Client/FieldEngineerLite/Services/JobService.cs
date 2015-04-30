@@ -22,7 +22,9 @@ namespace FieldEngineerLite
         #region Member variables
         
         public bool LoginInProgress = false;
-        public bool Online = false;        
+        public bool Online = false;  
+        
+        public const string LoggedInAgent = "2";
         
         #endregion
         
@@ -42,7 +44,7 @@ namespace FieldEngineerLite
         {
             // 3. initialize local store
 
-            var store = new MobileServiceSQLiteStore("local-db-fabrikamA");
+            var store = new MobileServiceSQLiteStore("local-db-fabrikam1");
             store.DefineTable<Job>();
 
             await MobileService.SyncContext.InitializeAsync(store);
@@ -73,16 +75,14 @@ namespace FieldEngineerLite
 
         public async Task SyncAsync()
         {
-            // 7. add auth
-
-
             // 6. add sync
             try
             {
                 await this.MobileService.SyncContext.PushAsync();
 
-                var query = jobTable.CreateQuery()
-                                .Where(job => job.AgentId == "2");
+                var query = 
+                    jobTable.CreateQuery()
+                    .Where(job => job.AgentId == LoggedInAgent);
 
                 await jobTable.PullAsync(null, query);
             }
