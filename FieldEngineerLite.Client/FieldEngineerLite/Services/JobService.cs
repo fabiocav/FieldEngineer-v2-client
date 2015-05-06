@@ -8,6 +8,7 @@ using Microsoft.WindowsAzure.MobileServices.Sync;
 using FieldEngineerLite.Helpers;
 using FieldEngineerLite.Models;
 using System.Threading;
+using FieldEngineerLite.Files;
 
 namespace FieldEngineerLite
 {
@@ -103,6 +104,20 @@ namespace FieldEngineerLite
 
             return this.MobileService.CurrentUser != null;                
         }
+
+        internal async Task<IEnumerable<MobileServiceFile>> GetFilesAsync(Job job)
+        {
+          //  jobTable.get
+        //    jobTable.GetFilesAsync(job);
+            return await jobTable.GetFilesAsync(job);
+        }
+
+        internal IMobileServiceClient GetMobileServiceClient()
+        {
+            return this.MobileService;
+        }
     }
+
+    
 }
 

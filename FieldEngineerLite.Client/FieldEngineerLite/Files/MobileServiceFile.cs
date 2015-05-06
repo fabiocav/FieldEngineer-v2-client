@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.WindowsAzure.Storage.Blob;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -38,6 +39,11 @@ namespace FieldEngineerLite.Files
             get { return this.name; }
             set { this.name = value; }
         }
+
+        public string ParentDataItemType { get; set; }
+
+        public string ParentDataItemId { get; set; }
+
 
         public IDictionary<string, string> Metadata
         {
@@ -94,7 +100,7 @@ namespace FieldEngineerLite.Files
 
         internal Stream GetStreamAsync()
         {
-            
+
             if (this.localFilePath == null)
             {
                 return null;
@@ -138,7 +144,54 @@ namespace FieldEngineerLite.Files
 
         private static string GetTempFilesDirectoryAsync()
         {
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MobileServicesFiles");
+            string filesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MobileServicesFiles");
+
+            if (!Directory.Exists(filesPath))
+            {
+                Directory.CreateDirectory(filesPath);
+            }
+
+            return filesPath;
+        }
+
+        internal async Task<string> GetLocalFilePathAsync()
+        {
+            if (localFilePath == null)
+            {
+                await DownloadAsync();
+            }
+
+            return localFilePath;
+        }
+
+        private async Task DownloadAsync()
+        {
+            StorageToken token = await GetStorageToken();
+
+            var container = new CloudBlobContainer(new Uri(token.RawToken));
+
+            CloudBlob blob = container.GetBlobReference(this.name);
+
+            string filePath = Path.Combine(GetTempFilesDirectoryAsync(), this.name);
+            using (var stream = File.Create(filePath))
+            {
+                await blob.DownloadToStreamAsync(stream);
+            }
+
+            this.localFilePath = filePath;
+        }
+
+        private async Task<StorageToken> GetStorageToken()
+        {
+            // This logic is here for POC purposes only.
+            var client = App.JobService.GetMobileServiceClient();
+
+            var tokenRequest = new StorageTokenRequest();
+            tokenRequest.Permissions = StoragePermissions.Read;
+
+            string route = string.Format("/tables/{0}/{1}/StorageToken", ParentDataItemType, ParentDataItemId);
+
+            return await client.InvokeApiAsync<StorageTokenRequest, StorageToken>(route, tokenRequest);
         }
     }
 

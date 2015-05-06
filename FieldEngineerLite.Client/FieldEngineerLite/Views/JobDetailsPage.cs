@@ -6,15 +6,16 @@ using System.Threading.Tasks;
 using Xamarin.Forms;
 using FieldEngineerLite.Helpers;
 using FieldEngineerLite.Models;
+using FieldEngineerLite.Files;
 
 namespace FieldEngineerLite.Views
-{	
+{
     public class JobDetailsPage : ContentPage
-    {        
+    {
         public JobDetailsPage()
         {
-            TableSection mainSection = new TableSection();     
-            
+            TableSection mainSection = new TableSection();
+
             mainSection.Add(new DataElementCell("Title", "Description"));
             mainSection.Add(new DataElementCell("Customer.FullName", "Customer"));
             mainSection.Add(new DataElementCell("Customer.Address", "Address") { Height = 60 });
@@ -24,35 +25,58 @@ namespace FieldEngineerLite.Views
             statusCell.ValueLabel.SetBinding<Job>(Label.TextColorProperty, job => job.Status, converter: new JobStatusToColorConverter());
             mainSection.Add(statusCell);
 
-            var equipmentSection = new TableSection("Equipment");            
-            var equipmentRowTemplate = new DataTemplate(typeof(ImageCell));            
+            var photosSection = new TableSection("Photos");
+            var photosRowTemplate = new DataTemplate(typeof(ImageCell));
+            photosRowTemplate.SetBinding(ImageCell.TextProperty, "Name");
+            photosRowTemplate.SetBinding(ImageCell.DetailProperty, "Description");
+
+            if (Device.OS == TargetPlatform.iOS)
+                photosRowTemplate.SetBinding(ImageCell.ImageSourceProperty, "FilePath");
+
+            var photosListView = new ListView
+            {
+                RowHeight = 50,
+                ItemTemplate = photosRowTemplate,
+            };
+
+            photosListView.SetBinding<Job>(ListView.ItemsSourceProperty, job => job.Photos);
+
+            var photosCell = new ViewCell { View = photosListView };
+            photosSection.Add(photosCell);
+            photosCell.Height = 150;
+
+            var equipmentSection = new TableSection("Equipment");
+            var equipmentRowTemplate = new DataTemplate(typeof(ImageCell));
             equipmentRowTemplate.SetBinding(ImageCell.TextProperty, "Name");
             equipmentRowTemplate.SetBinding(ImageCell.DetailProperty, "Description");
 
-			// I don't have images working on Android yet
-			if (Device.OS == TargetPlatform.iOS) 			
-				equipmentRowTemplate.SetBinding (ImageCell.ImageSourceProperty, "ThumbImage");
+            // I don't have images working on Android yet
+            if (Device.OS == TargetPlatform.iOS)
+                equipmentRowTemplate.SetBinding(ImageCell.ImageSourceProperty, "ThumbImage");
 
-            var equipmentListView = new ListView {
+            var equipmentListView = new ListView
+            {
                 RowHeight = 50,
                 ItemTemplate = equipmentRowTemplate
             };
-            equipmentListView.SetBinding<Job>(ListView.ItemsSourceProperty, job => job.Equipments);            
+            equipmentListView.SetBinding<Job>(ListView.ItemsSourceProperty, job => job.Equipments);
 
-            var equipmentCell = new ViewCell { View = equipmentListView };            
+            var equipmentCell = new ViewCell { View = equipmentListView };
             equipmentSection.Add(equipmentCell);
 
             var actionsSection = new TableSection("Actions");
-            
-            TextCell completeJob = new TextCell { 
+
+            TextCell completeJob = new TextCell
+            {
                 Text = "Mark Job as Complete",
-				TextColor = AppStyle.DefaultActionColor
-            };            
-            completeJob.Tapped += async delegate {
+                TextColor = AppStyle.DefaultActionColor
+            };
+            completeJob.Tapped += async delegate
+            {
                 await this.CompleteJobAsync();
             };
             actionsSection.Add(completeJob);
-            
+
             var table = new TableView
             {
                 Intent = TableIntent.Form,
@@ -60,11 +84,11 @@ namespace FieldEngineerLite.Views
                 HasUnevenRows = true,
                 Root = new TableRoot("Root")
                 {
-                    mainSection, actionsSection, equipmentSection
+                    mainSection, photosSection, actionsSection, equipmentSection
                 }
             };
             table.SetBinding<Job>(TableView.BackgroundColorProperty, job => job.Status, converter: new JobStatusToColorConverter(useLightTheme: true));
-            
+
             this.Title = "Job Details";
             this.Content = new StackLayout
             {
@@ -87,7 +111,7 @@ namespace FieldEngineerLite.Views
         private async Task CompleteJobAsync()
         {
             var job = this.SelectedJob;
-            await App.JobService.CompleteJobAsync (job);
+            await App.JobService.CompleteJobAsync(job);
 
             // Force a refresh
             this.BindingContext = null;
@@ -101,14 +125,16 @@ namespace FieldEngineerLite.Views
 
             public DataElementCell(string property, string propertyDescription = null)
             {
-                DescriptionLabel = new Label {
+                DescriptionLabel = new Label
+                {
                     Text = propertyDescription ?? property,
                     Font = AppStyle.DefaultFont.WithAttributes(FontAttributes.Bold),
                     WidthRequest = 150,
-                    VerticalOptions = LayoutOptions.CenterAndExpand                
+                    VerticalOptions = LayoutOptions.CenterAndExpand
                 };
 
-                ValueLabel = new Label {
+                ValueLabel = new Label
+                {
                     Font = AppStyle.DefaultFont,
                     HorizontalOptions = LayoutOptions.FillAndExpand,
                     VerticalOptions = LayoutOptions.CenterAndExpand,
@@ -123,6 +149,6 @@ namespace FieldEngineerLite.Views
                     Children = { DescriptionLabel, ValueLabel }
                 };
             }
-        }   
+        }
     }
 }
