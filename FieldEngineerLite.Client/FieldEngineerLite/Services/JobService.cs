@@ -14,9 +14,10 @@ namespace FieldEngineerLite
     public class JobService
     {
          private MobileServiceClient MobileService = new MobileServiceClient(
-            "https://pbevolvewest.azure-mobile.net/",
-            "",
-            new LoggingHandler()
+            "https://fieldengineerfiles-code.azurewebsites.net",
+            "https://default-sql-westus73e0c3fd2d6645ec9f32852f08e1f38f.azurewebsites.net",
+            "tTWOhHeXaEKuNaONJQPkHVEKxUWzcP58",
+            new LoggingHandler(true)
         );
 
         private IMobileServiceSyncTable<Job> jobTable;
@@ -43,6 +44,7 @@ namespace FieldEngineerLite
                 ;
 
             await jobTable.PullAsync("myjobs", query);
+
         }            
 
         public async Task<IEnumerable<Job>> SearchJobs(string searchInput)
