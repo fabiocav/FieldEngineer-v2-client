@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Xamarin.Forms;
 using FieldEngineerLite.Helpers;
 using FieldEngineerLite.Models;
+using FieldEngineerLite.ViewModels;
 
 namespace FieldEngineerLite.Views
 {
@@ -30,9 +31,9 @@ namespace FieldEngineerLite.Views
             
             jobList.ItemTapped += async (sender, e) =>
             {                
-                var selectedJob = e.Item as Job;
+                var selectedJob = e.Item as JobViewModel;
                 if (selectedJob != null)
-                    await ShowJobDetailsAsync((Job)e.Item);                    
+                    await ShowJobDetailsAsync((JobViewModel)e.Item);                    
             };
 
 
@@ -103,7 +104,7 @@ namespace FieldEngineerLite.Views
             await this.RefreshAsync();
         }
 
-        private async Task ShowJobDetailsAsync(Job selectedJob)
+        private async Task ShowJobDetailsAsync(JobViewModel selectedJob)
         {                        
             detailPage.BindingContext = selectedJob;
             await this.Navigation.PushAsync(detailPage);
@@ -112,7 +113,7 @@ namespace FieldEngineerLite.Views
         private async Task RefreshAsync()
         {        
             var groups = from job in await App.JobService.SearchJobs (searchBar.Text)
-                         group job by job.Status into jobGroup                        
+                         group new JobViewModel(job) by job.Status into jobGroup                        
                          select jobGroup;
 
             jobList.ItemsSource = groups.OrderBy(group => GetJobSortOrder(group.Key));     

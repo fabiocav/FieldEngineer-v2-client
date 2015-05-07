@@ -1,4 +1,6 @@
-﻿using Microsoft.WindowsAzure.Storage.Blob;
+﻿using Microsoft.WindowsAzure.MobileServices;
+using Microsoft.WindowsAzure.MobileServices.Sync;
+using Microsoft.WindowsAzure.Storage.Blob;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,18 +16,25 @@ namespace FieldEngineerLite.Files
         private string localFilePath;
         private string name;
         private string id;
+        private string tableName;
+        private string parentDataItemId;
 
         private MobileServiceFile()
         {
             this.metadata = new Dictionary<string, string>();
+
+            // Here for this POC only
+            this.tableName = "Job";
         }
 
-        private MobileServiceFile(string localFilePath, string id, string name)
-            : this()
+        private MobileServiceFile(string tableName, string parentDataItemId, string localFilePath, string name)
         {
+            this.tableName = tableName;
             this.localFilePath = localFilePath;
             this.name = name;
-            this.id = id;
+            this.id = name;
+            this.parentDataItemId = parentDataItemId;
+            this.metadata = new Dictionary<string, string>();
         }
 
         public string Id
@@ -40,17 +49,18 @@ namespace FieldEngineerLite.Files
             set { this.name = value; }
         }
 
-        public string ParentDataItemType { get; set; }
-
-        public string ParentDataItemId { get; set; }
-
+        public string ParentDataItemId
+        {
+            get { return parentDataItemId; }
+            set { parentDataItemId = value; }
+        }
 
         public IDictionary<string, string> Metadata
         {
             get { return this.metadata; }
         }
 
-        public async static Task<MobileServiceFile> FromFileAsync(string path)
+        internal static MobileServiceFile FromFile(string tableName, string dataItemId, string path)
         {
             if (path == null)
             {
@@ -68,81 +78,23 @@ namespace FieldEngineerLite.Files
             }
 
             string fileName = Path.GetFileName(path);
-            return new MobileServiceFile(path, fileName, fileName);
+
+            string targetPath = CreateLocaFilePath(fileName);
+
+            File.Copy(path, targetPath);
+
+            return new MobileServiceFile(tableName, dataItemId, targetPath, fileName);
         }
 
-        //public async static Task<MobileServiceFile> FromByteArrayAsync(byte[] bytes, string fileName)
-        //{
-        //    if (bytes == null)
-        //    {
-        //        throw new ArgumentNullException("stream");
-        //    }
-
-        //    if (string.IsNullOrWhiteSpace(fileName) || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) > 0)
-        //    {
-        //        throw new ArgumentException("Invalid file name.", "fileName");
-        //    }
-
-
-        //    string filesDirectory = GetTempFilesDirectoryAsync();
-        //    using (Stream fileStream = File.Create()
-
-        //    string fileId = Guid.NewGuid().ToString();
-        //    StorageFile file = await folder.CreateFileAsync(fileId, CreationCollisionOption.ReplaceExisting);
-
-        //    using (var backingFileStream = await file.OpenStreamForWriteAsync())
-        //    {
-        //        await backingFileStream.WriteAsync(bytes, 0, bytes.Length);
-        //    }
-
-        //    return new MobileServiceFile(file, fileId, fileName);
-        //}
-
-        internal Stream GetStreamAsync()
+        private static string CreateLocaFilePath(string fileName)
         {
-
-            if (this.localFilePath == null)
-            {
-                return null;
-            }
-
-            return File.Open(this.localFilePath, FileMode.Open, FileAccess.ReadWrite);
+            return Path.Combine(GetFilesDirectory(), fileName);
         }
 
-        //private async Task<StorageFile> GetOrCreateBackingFile()
-        //{
-        //    if (this.backingFile == null)
-        //    {
-        //        StorageFolder folder = await GetTempFilesDirectoryAsync();
 
-        //        try
-        //        {
-        //            this.backingFile = await folder.GetFileAsync(this.id);
-        //        }
-        //        catch (FileNotFoundException)
-        //        {
-        //            // need to define what we want this behavior to be.
-        //            // Auto download? throw an exception? return a null stream?
-        //            return null;
-        //        }
-        //    }
 
-        //    return this.backingFile;
-        //}
-
-        //internal async Task<string> GetTempFilePath()
-        //{
-        //    StorageFile file = await GetOrCreateBackingFile();
-
-        //    if (file == null)
-        //    {
-        //        return null;
-        //    }
-
-        //    return file.Path;
-        //}
-
-        private static string GetTempFilesDirectoryAsync()
+      
+        private static string GetFilesDirectory()
         {
             string filesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MobileServicesFiles");
 
@@ -154,44 +106,25 @@ namespace FieldEngineerLite.Files
             return filesPath;
         }
 
-        internal async Task<string> GetLocalFilePathAsync()
+        public bool LocalFileExists
         {
-            if (localFilePath == null)
+            get
             {
-                await DownloadAsync();
+                return File.Exists(localFilePath);
             }
-
-            return localFilePath;
         }
 
-        private async Task DownloadAsync()
+        public string LocalFilePath
         {
-            StorageToken token = await GetStorageToken();
-
-            var container = new CloudBlobContainer(new Uri(token.RawToken));
-
-            CloudBlob blob = container.GetBlobReference(this.name);
-
-            string filePath = Path.Combine(GetTempFilesDirectoryAsync(), this.name);
-            using (var stream = File.Create(filePath))
+            get
             {
-                await blob.DownloadToStreamAsync(stream);
+                if (localFilePath == null)
+                {
+                    localFilePath = CreateLocaFilePath(this.name);
+                }
+
+                return localFilePath;
             }
-
-            this.localFilePath = filePath;
-        }
-
-        private async Task<StorageToken> GetStorageToken()
-        {
-            // This logic is here for POC purposes only.
-            var client = App.JobService.GetMobileServiceClient();
-
-            var tokenRequest = new StorageTokenRequest();
-            tokenRequest.Permissions = StoragePermissions.Read;
-
-            string route = string.Format("/tables/{0}/{1}/StorageToken", ParentDataItemType, ParentDataItemId);
-
-            return await client.InvokeApiAsync<StorageTokenRequest, StorageToken>(route, tokenRequest);
         }
     }
 

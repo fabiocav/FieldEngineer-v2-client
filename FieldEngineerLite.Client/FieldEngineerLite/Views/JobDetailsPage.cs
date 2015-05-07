@@ -7,6 +7,7 @@ using Xamarin.Forms;
 using FieldEngineerLite.Helpers;
 using FieldEngineerLite.Models;
 using FieldEngineerLite.Files;
+using FieldEngineerLite.ViewModels;
 
 namespace FieldEngineerLite.Views
 {
@@ -22,7 +23,7 @@ namespace FieldEngineerLite.Views
             mainSection.Add(new DataElementCell("Customer.PrimaryContactNumber", "Telephone"));
 
             var statusCell = new DataElementCell("Status");
-            statusCell.ValueLabel.SetBinding<Job>(Label.TextColorProperty, job => job.Status, converter: new JobStatusToColorConverter());
+            statusCell.ValueLabel.SetBinding<JobViewModel>(Label.TextColorProperty, job => job.Status, converter: new JobStatusToColorConverter());
             mainSection.Add(statusCell);
 
             var photosSection = new TableSection("Photos");
@@ -39,12 +40,25 @@ namespace FieldEngineerLite.Views
                 ItemTemplate = photosRowTemplate,
                 SeparatorVisibility = SeparatorVisibility.None
             };
-            
-            photosListView.SetBinding<Job>(ListView.ItemsSourceProperty, job => job.Photos);
+
+            photosListView.SetBinding<JobViewModel>(ListView.ItemsSourceProperty, job => job.Photos);
 
             var photosCell = new ViewCell { View = photosListView };
             photosSection.Add(photosCell);
             photosCell.Height = 150;
+
+            TextCell addPhoto = new TextCell
+            {
+               Text = "Add Job Photo",
+               TextColor = AppStyle.DefaultActionColor
+            };
+
+            addPhoto.Tapped += async delegate
+            {
+                await this.GetImageAsync();
+            };
+            
+            photosSection.Add(addPhoto);
 
             var equipmentSection = new TableSection("Equipment");
             var equipmentRowTemplate = new DataTemplate(typeof(ImageCell));
@@ -60,7 +74,7 @@ namespace FieldEngineerLite.Views
                 RowHeight = 50,
                 ItemTemplate = equipmentRowTemplate
             };
-            equipmentListView.SetBinding<Job>(ListView.ItemsSourceProperty, job => job.Equipments);
+            equipmentListView.SetBinding<JobViewModel>(ListView.ItemsSourceProperty, job => job.Equipments);
 
             var equipmentCell = new ViewCell { View = equipmentListView };
             equipmentSection.Add(equipmentCell);
@@ -72,10 +86,12 @@ namespace FieldEngineerLite.Views
                 Text = "Mark Job as Complete",
                 TextColor = AppStyle.DefaultActionColor
             };
+
             completeJob.Tapped += async delegate
             {
                 await this.CompleteJobAsync();
             };
+
             actionsSection.Add(completeJob);
 
             var table = new TableView
@@ -88,7 +104,7 @@ namespace FieldEngineerLite.Views
                     mainSection, photosSection, actionsSection, equipmentSection
                 }
             };
-            table.SetBinding<Job>(TableView.BackgroundColorProperty, job => job.Status, converter: new JobStatusToColorConverter(useLightTheme: true));
+            table.SetBinding<JobViewModel>(TableView.BackgroundColorProperty, job => job.Status, converter: new JobStatusToColorConverter(useLightTheme: true));
 
             this.Title = "Job Details";
             this.Content = new StackLayout
@@ -104,19 +120,36 @@ namespace FieldEngineerLite.Views
             };
         }
 
-        private Job SelectedJob
+        private JobViewModel SelectedJob
         {
-            get { return this.BindingContext as Job; }
+            get { return this.BindingContext as JobViewModel; }
         }
 
         private async Task CompleteJobAsync()
         {
             var job = this.SelectedJob;
-            await App.JobService.CompleteJobAsync(job);
+            await job.CompleteJobAsync();
 
             // Force a refresh
             this.BindingContext = null;
             this.BindingContext = job;
+        }
+
+        private async Task GetImageAsync()
+        {
+
+            JobViewModel job = this.SelectedJob;
+            if (job != null)
+            {
+                IMediaPicker mediaProvider = DependencyService.Get<IMediaPicker>();
+                string imagePath = await mediaProvider.GetPhotoAsync();
+
+                await job.AddPhotoAsync(imagePath);
+
+                // Force a refresh
+                this.BindingContext = null;
+                this.BindingContext = job;
+            }
         }
 
         private class DataElementCell : ViewCell

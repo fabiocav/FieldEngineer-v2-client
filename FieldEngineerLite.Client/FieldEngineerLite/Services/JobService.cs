@@ -108,12 +108,22 @@ namespace FieldEngineerLite
 
         internal async Task<IEnumerable<MobileServiceFile>> GetFilesAsync(Job job)
         {
-            return await jobTable.GetFilesAsync(job);
+           return await jobTable.GetFilesAsync(job);
         }
 
-        internal IMobileServiceClient GetMobileServiceClient()
+        internal async Task UploadFileAsync(Job job, MobileServiceFile file)
         {
-            return this.MobileService;
+            await this.jobTable.UploadFileAsync(job, file);
+        }
+
+        internal async Task DownloadFileAsync(Job job, MobileServiceFile file)
+        {
+            await this.jobTable.DownloadFileAsync(job, file);
+        }
+
+        internal MobileServiceFile CreateFileFromPath(Job job, string imagePath)
+        {
+            return this.jobTable.CreateFileFromPath(job, imagePath);
         }
     }
 

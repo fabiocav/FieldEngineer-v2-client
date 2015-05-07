@@ -16,10 +16,12 @@ namespace FieldEngineerLite.Models
         private string filePath;
 
         public event PropertyChangedEventHandler PropertyChanged;
+        private Job job;
 
-        public JobImageViewModel(MobileServiceFile file)
+        public JobImageViewModel(Job job, MobileServiceFile file)
         {
             this.file = file;
+            this.job = job;
         }
 
 
@@ -48,9 +50,12 @@ namespace FieldEngineerLite.Models
 
         private async void GetLocalFilePath()
         {
-            string path = await file.GetLocalFilePathAsync();
-
-            FilePath = path;
+            if (!file.LocalFileExists)
+            {
+                await App.JobService.DownloadFileAsync(this.job, this.file);
+            }
+            
+            FilePath = file.LocalFilePath;
         }
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)

@@ -4,6 +4,7 @@ using System.Text;
 using Xamarin.Forms;
 using FieldEngineerLite.Helpers;
 using FieldEngineerLite.Models;
+using FieldEngineerLite.ViewModels;
 
 namespace FieldEngineerLite.Views
 {
@@ -15,11 +16,11 @@ namespace FieldEngineerLite.Views
 
             var title = new Label();
             title.Font = AppStyle.DefaultFont;
-            title.SetBinding<Job>(Label.TextProperty, job => job.Title);
+            title.SetBinding<JobViewModel>(Label.TextProperty, job => job.Title);
 
             var customer = new Label();
             customer.Font = AppStyle.DefaultFont;
-            customer.SetBinding<Job>(Label.TextProperty, job => job.Customer.FullName);            
+            customer.SetBinding<JobViewModel>(Label.TextProperty, job => job.Customer.FullName);            
 
             var jobDetails = new StackLayout
             {
@@ -39,7 +40,7 @@ namespace FieldEngineerLite.Views
                     title
                 }
             };
-            jobDetails.SetBinding<Job>(StackLayout.BackgroundColorProperty, job => job.Status, converter: new JobStatusToColorConverter(useLightTheme: true));
+            jobDetails.SetBinding<JobViewModel>(StackLayout.BackgroundColorProperty, job => job.Status, converter: new JobStatusToColorConverter(useLightTheme: true));
 
             var rootLayout = new StackLayout()
             {
