@@ -24,6 +24,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Views\JobCell.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\JobDetailsPage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\JobGroupingHeaderCell.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Views\JobImageCell.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\JobListPage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\JobStatusToColorConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\LoggingHelpers.cs" />

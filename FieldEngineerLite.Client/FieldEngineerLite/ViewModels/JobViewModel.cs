@@ -168,5 +168,12 @@ namespace FieldEngineerLite.ViewModels
             await Task.FromResult<object>(null);
             await App.JobService.UploadFileAsync(this.job, file);
         }
+
+        internal async Task DeletePhotoAsync(JobImageViewModel imageViewModel)
+        {
+            await App.JobService.DeleteFileAsync(imageViewModel.Job, imageViewModel.File);
+
+            this.Photos.Remove(imageViewModel);
+        }
     }
 }

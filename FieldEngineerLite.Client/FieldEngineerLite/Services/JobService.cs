@@ -125,6 +125,11 @@ namespace FieldEngineerLite
         {
             return this.jobTable.CreateFileFromPath(job, imagePath);
         }
+
+        internal async Task DeleteFileAsync(Job job, MobileServiceFile mobileServiceFile)
+        {
+            await this.jobTable.DeleteFileAsync(job, mobileServiceFile);
+        }
     }
 
     

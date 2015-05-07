@@ -8,6 +8,7 @@ using FieldEngineerLite.Helpers;
 using FieldEngineerLite.Models;
 using FieldEngineerLite.Files;
 using FieldEngineerLite.ViewModels;
+using System.Windows.Input;
 
 namespace FieldEngineerLite.Views
 {
@@ -16,6 +17,7 @@ namespace FieldEngineerLite.Views
         public JobDetailsPage()
         {
             TableSection mainSection = new TableSection();
+
 
             mainSection.Add(new DataElementCell("Title", "Description"));
             mainSection.Add(new DataElementCell("Customer.FullName", "Customer"));
@@ -27,19 +29,15 @@ namespace FieldEngineerLite.Views
             mainSection.Add(statusCell);
 
             var photosSection = new TableSection("Photos");
-            var photosRowTemplate = new DataTemplate(typeof(ImageCell));
-            photosRowTemplate.SetBinding(ImageCell.TextProperty, "Name");
-            photosRowTemplate.SetBinding(ImageCell.DetailProperty, "Description");
 
-            if (Device.OS == TargetPlatform.iOS)
-                photosRowTemplate.SetBinding(ImageCell.ImageSourceProperty, "FilePath");
+            var photosRowTemplate = new DataTemplate(typeof(JobImageCell));
 
             var photosListView = new ListView
-            {
-                RowHeight = 50,
-                ItemTemplate = photosRowTemplate,
-                SeparatorVisibility = SeparatorVisibility.None
-            };
+             {
+                 RowHeight = 50,
+                 ItemTemplate = photosRowTemplate,
+                 SeparatorVisibility = SeparatorVisibility.None
+             };
 
             photosListView.SetBinding<JobViewModel>(ListView.ItemsSourceProperty, job => job.Photos);
 
@@ -47,17 +45,19 @@ namespace FieldEngineerLite.Views
             photosSection.Add(photosCell);
             photosCell.Height = 150;
 
+
+
             TextCell addPhoto = new TextCell
             {
-               Text = "Add Job Photo",
-               TextColor = AppStyle.DefaultActionColor
+                Text = "Add Job Photo",
+                TextColor = AppStyle.DefaultActionColor
             };
 
             addPhoto.Tapped += async delegate
             {
                 await this.GetImageAsync();
             };
-            
+
             photosSection.Add(addPhoto);
 
             var equipmentSection = new TableSection("Equipment");
@@ -77,6 +77,7 @@ namespace FieldEngineerLite.Views
             equipmentListView.SetBinding<JobViewModel>(ListView.ItemsSourceProperty, job => job.Equipments);
 
             var equipmentCell = new ViewCell { View = equipmentListView };
+
             equipmentSection.Add(equipmentCell);
 
             var actionsSection = new TableSection("Actions");
@@ -104,6 +105,7 @@ namespace FieldEngineerLite.Views
                     mainSection, photosSection, actionsSection, equipmentSection
                 }
             };
+
             table.SetBinding<JobViewModel>(TableView.BackgroundColorProperty, job => job.Status, converter: new JobStatusToColorConverter(useLightTheme: true));
 
             this.Title = "Job Details";
@@ -118,6 +120,14 @@ namespace FieldEngineerLite.Views
                 if (SelectedJob != null && SelectedJob.Equipments != null)
                     equipmentCell.Height = SelectedJob.Equipments.Count * equipmentListView.RowHeight;
             };
+
+            DeleteCommand = new Command<JobImageViewModel>(async m => await DeleteImageAsync(m));
+        }
+
+        public static ICommand DeleteCommand
+        {
+            get;
+            private set;
         }
 
         private JobViewModel SelectedJob
@@ -150,6 +160,12 @@ namespace FieldEngineerLite.Views
                 this.BindingContext = null;
                 this.BindingContext = job;
             }
+        }
+
+        private async Task<object> DeleteImageAsync(JobImageViewModel imageViewModel)
+        {
+            await this.SelectedJob.DeletePhotoAsync(imageViewModel);
+            return null;
         }
 
         private class DataElementCell : ViewCell

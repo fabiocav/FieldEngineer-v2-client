@@ -60,6 +60,12 @@ namespace FieldEngineerLite.Files
             await blob.DownloadToStreamAsync(stream);
         }
 
+        public async static Task DeleteFileAsync<T>(this IMobileServiceSyncTable<T> table, T dataItem, MobileServiceFile file)
+        {
+            string route = string.Format("/tables/{0}/{1}/MobileServiceFiles/{2}", table.TableName, GetDataItemId(dataItem), file.Name);
+
+            await table.MobileServiceClient.InvokeApiAsync(route, HttpMethod.Delete, null);
+        }
 
         private static string GetFilesDirectoryAsync()
         {

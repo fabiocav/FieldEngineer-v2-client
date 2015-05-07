@@ -48,6 +48,16 @@ namespace FieldEngineerLite.Models
             }
         }
 
+        public Job Job
+        {
+            get { return this.job; }
+        }
+
+        public MobileServiceFile File
+        {
+            get { return this.file; }
+        }
+
         private async void GetLocalFilePath()
         {
             if (!file.LocalFileExists)
