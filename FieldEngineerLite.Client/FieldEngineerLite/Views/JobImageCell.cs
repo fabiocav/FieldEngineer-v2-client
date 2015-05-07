@@ -20,15 +20,13 @@ namespace FieldEngineerLite.Views
                 new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }
             };
 
-
-
             var image = new Image();
             image.HorizontalOptions = LayoutOptions.Start;
             image.WidthRequest = 100;
             grid.Children.Add(image, 0,0);
 
 
-            if (Device.OS == TargetPlatform.iOS)
+            //if (Device.OS == TargetPlatform.iOS)
                 image.SetBinding(Image.SourceProperty, "FilePath");
 
 

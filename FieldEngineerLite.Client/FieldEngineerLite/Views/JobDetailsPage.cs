@@ -34,7 +34,7 @@ namespace FieldEngineerLite.Views
 
             var photosListView = new ListView
              {
-                 RowHeight = 50,
+                 RowHeight = 70,
                  ItemTemplate = photosRowTemplate,
                  SeparatorVisibility = SeparatorVisibility.None
              };
