@@ -13,9 +13,9 @@ namespace FieldEngineerLite.Models
     public class JobImageViewModel : INotifyPropertyChanged
     {
         private MobileServiceFile file;
+        private string filePath;
 
         public event PropertyChangedEventHandler PropertyChanged;
-        private string filePath;
 
         public JobImageViewModel(MobileServiceFile file)
         {
@@ -26,22 +26,6 @@ namespace FieldEngineerLite.Models
         public string Name
         {
             get { return this.file.Name; }
-        }
-
-        public string Description { get; set; }
-
-
-        public ImageSource ImageSource
-        {
-            get
-            {
-                if (this.filePath == null)
-                {
-                    GetLocalFilePath();
-                }
-
-                return this.filePath == null ? null : ImageSource.FromFile(filePath);
-            }
         }
 
         public string FilePath
@@ -59,7 +43,6 @@ namespace FieldEngineerLite.Models
             {
                 this.filePath = value;
                 OnPropertyChanged();
-                OnPropertyChanged("ImageSource");
             }
         }
 

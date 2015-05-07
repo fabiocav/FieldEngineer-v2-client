@@ -91,7 +91,8 @@ namespace FieldEngineerLite
 
         public async Task ClearAllJobs()
         {
-            await jobTable.PurgeAsync ("myjobs", jobTable.CreateQuery(), CancellationToken.None);
+            await jobTable.PurgeAsync(true);
+            //await jobTable.PurgeAsync ("myjobs", jobTable.CreateQuery(), true, CancellationToken.None);
             await InitializeAsync ();
         }
 
@@ -107,8 +108,6 @@ namespace FieldEngineerLite
 
         internal async Task<IEnumerable<MobileServiceFile>> GetFilesAsync(Job job)
         {
-          //  jobTable.get
-        //    jobTable.GetFilesAsync(job);
             return await jobTable.GetFilesAsync(job);
         }
 

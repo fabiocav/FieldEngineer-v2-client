@@ -15,11 +15,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Files\StoragePermissions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Files\StorageToken.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Files\StorageTokenRequest.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Helpers\MobileServiceFileToImageSourceConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Customer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Equipment.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Job.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Models\MobileServiceFileViewModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\JobImageViewModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\JobCell.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\JobDetailsPage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\JobGroupingHeaderCell.cs" />

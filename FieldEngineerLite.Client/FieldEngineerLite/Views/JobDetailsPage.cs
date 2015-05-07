@@ -37,8 +37,9 @@ namespace FieldEngineerLite.Views
             {
                 RowHeight = 50,
                 ItemTemplate = photosRowTemplate,
+                SeparatorVisibility = SeparatorVisibility.None
             };
-
+            
             photosListView.SetBinding<Job>(ListView.ItemsSourceProperty, job => job.Photos);
 
             var photosCell = new ViewCell { View = photosListView };

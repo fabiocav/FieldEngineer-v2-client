@@ -15,9 +15,12 @@ namespace FieldEngineerLite.Models
         public const string InProgressStatus = "On Site";
         public const string PendingStatus = "Not Started";
 
+        private IEnumerable<JobImageViewModel> photos;
+        private string customerName;
+        private string customerAddress;
+
         public event PropertyChangedEventHandler PropertyChanged;
 
-        private IEnumerable<JobImageViewModel> photos;
 
         public Job()
         {
@@ -43,9 +46,30 @@ namespace FieldEngineerLite.Models
         public string EtaTime { get; set; }
         public string Status { get; set; }
         public string Title { get; set; }
-        public string CustomerName { get; set; }
-        public string CustomerAddress { get; set; }
         public string CustomerPhoneNumber { get; set; }
+
+        public string CustomerName
+        {
+            get { return this.customerName; }
+            set
+            {
+                this.customerName = value;
+                OnPropertyChanged();
+                OnPropertyChanged("Customer");
+            }
+        }
+
+        public string CustomerAddress
+        {
+            get { return this.customerAddress; }
+            set
+            {
+                this.customerAddress = value;
+                OnPropertyChanged();
+                OnPropertyChanged("Customer");
+            }
+        }
+
 
         public Customer Customer
         {
