@@ -11,6 +11,8 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)App.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Files\MobileServiceFile.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Files\MobileServiceFileInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Files\MobileServiceFileJsonConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Files\MobileServiceTableExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Files\StoragePermissions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Files\StorageToken.cs" />

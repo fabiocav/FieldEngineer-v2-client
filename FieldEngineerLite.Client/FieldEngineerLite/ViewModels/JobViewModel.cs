@@ -28,13 +28,13 @@ namespace FieldEngineerLite.ViewModels
                     Description = "Set top box", 
                     Id = "1231", 
                     Name = "Set top box",
-                    ThumbImage = "Data/EquipementImages/Dish_1_Thumb.jpg"
+                    ThumbImage = "Data/EquipmentImages/Dish_1_Thumb.jpg"
                 },
                  new Equipment{ 
                     Description = "RCA cable", 
                     Id = "1110012", 
                     Name = "RCA cable",
-                    ThumbImage = "Data/EquipementImages/RCA_2_Thumb.jpg"
+                    ThumbImage = "Data/EquipmentImages/RCA_2_Thumb.jpg"
                 }
             };
         }
@@ -160,19 +160,18 @@ namespace FieldEngineerLite.ViewModels
 
         internal async Task AddPhotoAsync(string imagePath)
         {
-            MobileServiceFile file = App.JobService.CreateFileFromPath(this.job, imagePath);
-
+            MobileServiceFile file = await App.JobService.CreateFileFromPath(this.job, imagePath);
+            
             this.photos.Add(new JobImageViewModel(this.job, file));
             OnPropertyChanged("Photos");
 
-            await Task.FromResult<object>(null);
-            await App.JobService.UploadFileAsync(this.job, file);
+            await file.UploadAsync();
         }
 
         internal async Task DeletePhotoAsync(JobImageViewModel imageViewModel)
         {
-            await App.JobService.DeleteFileAsync(imageViewModel.Job, imageViewModel.File);
-
+            await imageViewModel.DeleteFileAsync();
+            
             this.Photos.Remove(imageViewModel);
         }
     }

@@ -111,24 +111,9 @@ namespace FieldEngineerLite
            return await jobTable.GetFilesAsync(job);
         }
 
-        internal async Task UploadFileAsync(Job job, MobileServiceFile file)
+        internal async Task<MobileServiceFile> CreateFileFromPath(Job job, string imagePath)
         {
-            await this.jobTable.UploadFileAsync(job, file);
-        }
-
-        internal async Task DownloadFileAsync(Job job, MobileServiceFile file)
-        {
-            await this.jobTable.DownloadFileAsync(job, file);
-        }
-
-        internal MobileServiceFile CreateFileFromPath(Job job, string imagePath)
-        {
-            return this.jobTable.CreateFileFromPath(job, imagePath);
-        }
-
-        internal async Task DeleteFileAsync(Job job, MobileServiceFile mobileServiceFile)
-        {
-            await this.jobTable.DeleteFileAsync(job, mobileServiceFile);
+            return await this.jobTable.CreateFileFromPath(job, imagePath);
         }
     }
 

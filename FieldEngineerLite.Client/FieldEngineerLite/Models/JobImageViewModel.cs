@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading.Tasks;
 using Xamarin.Forms;
 
 namespace FieldEngineerLite.Models
@@ -62,10 +63,15 @@ namespace FieldEngineerLite.Models
         {
             if (!file.LocalFileExists)
             {
-                await App.JobService.DownloadFileAsync(this.job, this.file);
+                await file.DownloadAsync();
             }
             
             FilePath = file.LocalFilePath;
+        }
+
+        internal async Task DeleteFileAsync()
+        {
+            await this.file.DeleteAsync();
         }
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
