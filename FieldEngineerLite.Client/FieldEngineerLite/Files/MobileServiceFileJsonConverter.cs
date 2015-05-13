@@ -30,8 +30,7 @@ namespace FieldEngineerLite.Files
         {
             MobileServiceFileInfo fileInfo = serializer.Deserialize<MobileServiceFileInfo>(reader);
 
-            return new MobileServiceFile(this.mobileServiceClient, this.fileMetadataManager, 
-                fileInfo.ParentDataItemType, fileInfo.ParentDataItemId, fileInfo.Name);
+            return MobileServiceFile.FromMobileServiceFileInfo(this.mobileServiceClient, this.fileMetadataManager, fileInfo);
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)

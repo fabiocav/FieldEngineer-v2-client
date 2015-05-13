@@ -9,16 +9,16 @@ using System.IO;
 using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Security.AccessControl;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Xamarin.Forms;
 
 namespace FieldEngineerLite.Files
 {
-    //[JsonConverter(typeof(MobileServiceFileJsonConverter))]
     public sealed class MobileServiceFile
     {
-        private readonly Dictionary<string, string> metadata;
+        private IDictionary<string, string> metadata;
         private IFileMetadataManager metadataManager;
         private string localFilePath;
         private string name;
@@ -79,6 +79,7 @@ namespace FieldEngineerLite.Files
         public IDictionary<string, string> Metadata
         {
             get { return this.metadata; }
+            private set { this.metadata = value; }
         }
 
         public bool LocalFileExists
@@ -86,6 +87,26 @@ namespace FieldEngineerLite.Files
             get
             {
                 return File.Exists(this.LocalFilePath);
+            }
+        }
+
+        public bool IsLocalFileCurrent
+        {
+            get
+            {
+                bool result = false;
+
+                if (LocalFileExists)
+                {
+                    string localContentMD5 = this.GetMD5Hash(LocalFilePath);
+
+                    if (string.Compare(localContentMD5, this.ContentMD5, StringComparison.InvariantCulture) == 0)
+                    {
+                        result = true;
+                    }
+                }
+
+                return result;
             }
         }
 
@@ -164,11 +185,54 @@ namespace FieldEngineerLite.Files
             return file;
         }
 
+        internal static MobileServiceFile FromMobileServiceFileInfo(IMobileServiceClient client, IFileMetadataManager metadataManager, MobileServiceFileInfo fileInfo)
+        {
+            var file = new MobileServiceFile(client, metadataManager, fileInfo.ParentDataItemType, fileInfo.ParentDataItemId, fileInfo.Name);
+
+            file.ContentMD5 = fileInfo.ContentMD5;
+            file.Metadata = fileInfo.Metadata;
+            file.Length = fileInfo.Length;
+
+            return file;
+        }
+
+        /// <summary>
+        /// Gets an array containing the file bytes.
+        /// </summary>
+        /// <param name="forceDownload">Bypasses local cache checks and Forces a file download.</param>
+        /// <returns>
+        /// A task that completes when the delete operation has finished.
+        /// </returns>
+        public async Task<byte[]> GetBytes(bool forceDownload)
+        {
+            if (IsLocalFileCurrent && !forceDownload)
+            {
+                return File.ReadAllBytes(this.LocalFilePath);
+            }
+
+            await DownloadAsync();
+
+            return File.ReadAllBytes(this.LocalFilePath);
+        }
+
+        private string GetMD5Hash(string filePath)
+        {
+            using (MD5 md5 = MD5.Create())
+            {
+                using (Stream fileStream = File.OpenRead(filePath))
+                {
+                    byte[] hash = md5.ComputeHash(fileStream);
+
+                    return Convert.ToBase64String(hash);
+                }
+            }
+        }
+
         /// <summary>
         /// Deletes the file represented by this <see cref="MobileServiceFile"/> instance.
         /// </summary>
         /// <returns>
-        /// A task that completes when pull operation has finished.
+        /// A task that completes when the delete operation has finished.
         /// </returns>
         public async Task DeleteAsync()
         {
@@ -177,7 +241,12 @@ namespace FieldEngineerLite.Files
             await client.InvokeApiAsync(route, HttpMethod.Delete, null);
         }
 
-
+        /// <summary>
+        /// Downloads the file, making it available on the local device.
+        /// </summary>
+        /// <returns>
+        /// A task that completes when the download operation has finished.
+        /// </returns>
         public async Task DownloadAsync()
         {
             using (var stream = File.Create(this.LocalFilePath))
@@ -188,7 +257,6 @@ namespace FieldEngineerLite.Files
 
         public async Task DownloadToStreamAsync(Stream stream)
         {
-
             StorageToken token = await GetStorageToken(StoragePermissions.Read);
 
             var container = new CloudBlobContainer(new Uri(token.RawToken));
@@ -196,6 +264,8 @@ namespace FieldEngineerLite.Files
             CloudBlob blob = container.GetBlobReference(this.name);
 
             await blob.DownloadToStreamAsync(stream);
+
+            this.ContentMD5 = blob.Properties.ContentMD5;
         }
 
 
@@ -211,6 +281,8 @@ namespace FieldEngineerLite.Files
             {
                 await blob.UploadFromStreamAsync(stream);
             }
+
+            this.ContentMD5 = blob.Properties.ContentMD5;
         }
     }
 

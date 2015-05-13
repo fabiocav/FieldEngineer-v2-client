@@ -25,6 +25,10 @@ namespace FieldEngineerLite.Files
 
         public string ParentDataItemId { get; set; }
 
+        public string ContentMD5 { get; set; }
+
+        public long Length { get; set; }
+
         public IDictionary<string, string> Metadata { get; set; }
     }
 }

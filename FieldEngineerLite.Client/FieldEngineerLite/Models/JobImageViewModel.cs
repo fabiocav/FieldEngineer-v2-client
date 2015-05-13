@@ -61,7 +61,7 @@ namespace FieldEngineerLite.Models
 
         private async void GetLocalFilePath()
         {
-            if (!file.LocalFileExists)
+            if (!file.IsLocalFileCurrent)
             {
                 await file.DownloadAsync();
             }
