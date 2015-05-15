@@ -12,13 +12,11 @@ namespace FieldEngineerLite.Files
     {
         private Type mobileServiceFileType;
         private IMobileServiceClient mobileServiceClient;
-        private IFileMetadataManager fileMetadataManager;
 
         public MobileServiceFileJsonConverter(IMobileServiceClient client)
         {
             this.mobileServiceFileType = typeof(MobileServiceFile);
             this.mobileServiceClient = client;
-            this.fileMetadataManager = new FileSystemMetadataManager();
         }
 
         public override bool CanConvert(Type objectType)
@@ -30,7 +28,7 @@ namespace FieldEngineerLite.Files
         {
             MobileServiceFileInfo fileInfo = serializer.Deserialize<MobileServiceFileInfo>(reader);
 
-            return MobileServiceFile.FromMobileServiceFileInfo(this.mobileServiceClient, this.fileMetadataManager, fileInfo);
+            return MobileServiceFile.FromMobileServiceFileInfo(this.mobileServiceClient, fileInfo);
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)

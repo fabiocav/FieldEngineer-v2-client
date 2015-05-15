@@ -19,7 +19,6 @@ namespace FieldEngineerLite.Files
     public sealed class MobileServiceFile
     {
         private IDictionary<string, string> metadata;
-        private IFileMetadataManager metadataManager;
         private string localFilePath;
         private string name;
         private string id;
@@ -35,14 +34,14 @@ namespace FieldEngineerLite.Files
         //    this.tableName = "Job";
         //}
 
-        internal MobileServiceFile(IMobileServiceClient client, IFileMetadataManager metadataManager, string tableName,
+        internal MobileServiceFile(IMobileServiceClient client, string tableName,
             string parentDataItemId, string name)
-            : this(client, metadataManager, tableName, parentDataItemId, null, name)
+            : this(client, tableName, parentDataItemId, null, name)
         {
         }
 
-        internal MobileServiceFile(IMobileServiceClient client, IFileMetadataManager metadataManager, string tableName,
-            string parentDataItemId, string localFilePath, string name)
+        internal MobileServiceFile(IMobileServiceClient client, string tableName, string parentDataItemId, 
+            string localFilePath, string name)
         {
             this.tableName = tableName;
             this.localFilePath = localFilePath;
@@ -50,7 +49,6 @@ namespace FieldEngineerLite.Files
             this.id = name;
             this.parentDataItemId = parentDataItemId;
             this.metadata = new Dictionary<string, string>();
-            this.metadataManager = metadataManager;
             this.client = client;
         }
 
@@ -66,10 +64,15 @@ namespace FieldEngineerLite.Files
             set { this.name = value; }
         }
 
+        public string TableName
+        {
+            get { return this.tableName; }
+        }
+
         public string ParentDataItemId
         {
-            get { return parentDataItemId; }
-            set { parentDataItemId = value; }
+            get { return this.parentDataItemId; }
+            set { this.parentDataItemId = value; }
         }
 
         public long Length { get; set; }
@@ -84,10 +87,7 @@ namespace FieldEngineerLite.Files
 
         public bool LocalFileExists
         {
-            get
-            {
-                return File.Exists(this.LocalFilePath);
-            }
+            get { return File.Exists(this.LocalFilePath); }
         }
 
         public bool IsLocalFileCurrent
@@ -122,12 +122,6 @@ namespace FieldEngineerLite.Files
                 return this.localFilePath;
             }
         }
-
-        private async Task SaveMetadata()
-        {
-            await this.metadataManager.SaveMetadataAsync(this.tableName, this.parentDataItemId, this);
-        }
-
 
         private static string CreateLocaFilePath(string fileName)
         {
@@ -179,15 +173,14 @@ namespace FieldEngineerLite.Files
 
             File.Copy(path, targetPath);
 
-            var file = new MobileServiceFile(client, new FileSystemMetadataManager(), tableName, dataItemId, targetPath, fileName);
-            await file.SaveMetadata();
-
+            var file = new MobileServiceFile(client, tableName, dataItemId, targetPath, fileName);
+            
             return file;
         }
 
-        internal static MobileServiceFile FromMobileServiceFileInfo(IMobileServiceClient client, IFileMetadataManager metadataManager, MobileServiceFileInfo fileInfo)
+        internal static MobileServiceFile FromMobileServiceFileInfo(IMobileServiceClient client, MobileServiceFileInfo fileInfo)
         {
-            var file = new MobileServiceFile(client, metadataManager, fileInfo.ParentDataItemType, fileInfo.ParentDataItemId, fileInfo.Name);
+            var file = new MobileServiceFile(client, fileInfo.ParentDataItemType, fileInfo.ParentDataItemId, fileInfo.Name);
 
             file.ContentMD5 = fileInfo.ContentMD5;
             file.Metadata = fileInfo.Metadata;
@@ -284,86 +277,6 @@ namespace FieldEngineerLite.Files
 
             this.ContentMD5 = blob.Properties.ContentMD5;
         }
-    }
-
-    public interface INetworkMonitor
-    {
-        event NetworkAvailabilityChangedEventHandler NetworkAvailabilityChanged;
-
-        bool IsNetworkAvailable { get; }
-    }
-
-    internal class MockNetworkMonitor : INetworkMonitor
-    {
-
-        public event NetworkAvailabilityChangedEventHandler NetworkAvailabilityChanged;
-
-        public MockNetworkMonitor(bool isNetworkAvailable)
-        {
-            this.IsNetworkAvailable = isNetworkAvailable;
-        }
-
-        public bool IsNetworkAvailable
-        {
-            get;
-            private set;
-        }
-    }
-
-    public interface IFileMetadataManager
-    {
-        Task<MobileServiceFileMetadata> SaveMetadataAsync(string tableName, string dataItemId, MobileServiceFile file);
-
-        Task<IEnumerable<MobileServiceFileMetadata>> GetMetadataAsync(string tableName, string dataItemId);
-    }
-
-    internal class FileSystemMetadataManager : IFileMetadataManager
-    {
-        public async Task<MobileServiceFileMetadata> SaveMetadataAsync(string tableName, string dataItemId, MobileServiceFile file)
-        {
-            return await Task.Run(() =>
-             {
-                 string entityDirectory = Path.Combine(GetMetadataDirectory(), tableName, dataItemId);
-
-                 if (!Directory.Exists(entityDirectory))
-                 {
-                     Directory.CreateDirectory(entityDirectory);
-                 }
-
-
-                 var metadata = new MobileServiceFileMetadata();
-                 metadata.FileName = file.Name;
-                 metadata.Length = file.Length;
-                 metadata.ContentMD5 = file.ContentMD5;
-
-                 using (var writer = File.CreateText(Path.Combine(entityDirectory, file.Name)))
-                 {
-                     var serializer = JsonSerializer.Create();
-                     serializer.Serialize(writer, metadata);
-                 }
-
-                 return metadata;
-             });
-        }
-
-        public Task<IEnumerable<MobileServiceFileMetadata>> GetMetadataAsync(string tableName, string dataItemId)
-        {
-            return null;
-        }
-
-        private static string GetMetadataDirectory()
-        {
-
-            string metadataDirectory = Path.Combine(MobileServiceFile.GetFilesDirectory(), ".msdata");
-
-            if (!Directory.Exists(metadataDirectory))
-            {
-                Directory.CreateDirectory(metadataDirectory);
-            }
-
-            return metadataDirectory;
-        }
-
     }
 
 }
