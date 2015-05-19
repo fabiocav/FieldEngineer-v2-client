@@ -13,6 +13,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Xamarin.Forms;
+using FieldEngineerLite.Files.Metadata;
 
 namespace FieldEngineerLite.Files
 {
@@ -32,7 +33,7 @@ namespace FieldEngineerLite.Files
 
         //    // Here for this POC only
         //    this.tableName = "Job";
-        //}
+        //}                                                                                                            
 
         internal MobileServiceFile(IMobileServiceClient client, string tableName,
             string parentDataItemId, string name)
@@ -40,7 +41,7 @@ namespace FieldEngineerLite.Files
         {
         }
 
-        internal MobileServiceFile(IMobileServiceClient client, string tableName, string parentDataItemId, 
+        internal MobileServiceFile(IMobileServiceClient client, string tableName, string parentDataItemId,
             string localFilePath, string name)
         {
             this.tableName = tableName;
@@ -150,7 +151,7 @@ namespace FieldEngineerLite.Files
             return filesPath;
         }
 
-        internal async static Task<MobileServiceFile> FromFile(IMobileServiceClient client, string tableName, string dataItemId, string path)
+        internal static MobileServiceFile FromFilePath(IMobileServiceClient client, string tableName, string dataItemId, string path)
         {
             if (path == null)
             {
@@ -174,7 +175,7 @@ namespace FieldEngineerLite.Files
             File.Copy(path, targetPath);
 
             var file = new MobileServiceFile(client, tableName, dataItemId, targetPath, fileName);
-            
+
             return file;
         }
 
@@ -189,6 +190,17 @@ namespace FieldEngineerLite.Files
             return file;
         }
 
+        internal static MobileServiceFile FromMetadata(IMobileServiceClient client, MobileServiceFileMetadata metadata)
+        {
+            var file = new MobileServiceFile(client, metadata.ParentDataItemType, metadata.ParentDataItemId, metadata.FileName);
+
+            file.ContentMD5 = metadata.ContentMD5;
+            //file.Metadata = fileInfo.;
+            file.Length = metadata.Length;
+
+            return file;
+        }
+
         /// <summary>
         /// Gets an array containing the file bytes.
         /// </summary>
@@ -196,16 +208,15 @@ namespace FieldEngineerLite.Files
         /// <returns>
         /// A task that completes when the delete operation has finished.
         /// </returns>
-        public async Task<byte[]> GetBytes(bool forceDownload)
+        public Task<byte[]> GetBytes(bool forceDownload)
         {
-            if (IsLocalFileCurrent && !forceDownload)
+            
+            if (this.LocalFileExists)
             {
-                return File.ReadAllBytes(this.LocalFilePath);
+                return Task.FromResult(File.ReadAllBytes(this.LocalFilePath));
             }
 
-            await DownloadAsync();
-
-            return File.ReadAllBytes(this.LocalFilePath);
+            return Task.FromResult<byte[]>(null);
         }
 
         private string GetMD5Hash(string filePath)
@@ -220,63 +231,5 @@ namespace FieldEngineerLite.Files
                 }
             }
         }
-
-        /// <summary>
-        /// Deletes the file represented by this <see cref="MobileServiceFile"/> instance.
-        /// </summary>
-        /// <returns>
-        /// A task that completes when the delete operation has finished.
-        /// </returns>
-        public async Task DeleteAsync()
-        {
-            string route = string.Format("/tables/{0}/{1}/MobileServiceFiles/{2}", this.tableName, this.parentDataItemId, this.name);
-
-            await client.InvokeApiAsync(route, HttpMethod.Delete, null);
-        }
-
-        /// <summary>
-        /// Downloads the file, making it available on the local device.
-        /// </summary>
-        /// <returns>
-        /// A task that completes when the download operation has finished.
-        /// </returns>
-        public async Task DownloadAsync()
-        {
-            using (var stream = File.Create(this.LocalFilePath))
-            {
-                await DownloadToStreamAsync(stream);
-            }
-        }
-
-        public async Task DownloadToStreamAsync(Stream stream)
-        {
-            StorageToken token = await GetStorageToken(StoragePermissions.Read);
-
-            var container = new CloudBlobContainer(new Uri(token.RawToken));
-
-            CloudBlob blob = container.GetBlobReference(this.name);
-
-            await blob.DownloadToStreamAsync(stream);
-
-            this.ContentMD5 = blob.Properties.ContentMD5;
-        }
-
-
-        public async Task UploadAsync()
-        {
-            StorageToken token = await GetStorageToken(StoragePermissions.Write);
-
-            var container = new CloudBlobContainer(new Uri(token.RawToken));
-
-            CloudBlockBlob blob = container.GetBlockBlobReference(this.name);
-
-            using (var stream = File.OpenRead(this.LocalFilePath))
-            {
-                await blob.UploadFromStreamAsync(stream);
-            }
-
-            this.ContentMD5 = blob.Properties.ContentMD5;
-        }
     }
-
 }

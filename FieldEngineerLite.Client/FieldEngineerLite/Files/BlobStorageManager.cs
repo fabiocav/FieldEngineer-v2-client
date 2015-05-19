@@ -4,21 +4,22 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using FieldEngineerLite.Files;
+using FieldEngineerLite.Files.Metadata;
 using Microsoft.WindowsAzure.MobileServices;
 using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace FieldEngineerLite
 {
-    public class BlobStorageManager
+    public class BlobStorageProvider
     {
         private readonly IMobileServiceClient mobileServiceClient;
 
-        public BlobStorageManager(IMobileServiceClient client)
+        public BlobStorageProvider(IMobileServiceClient client)
         {
             this.mobileServiceClient = client;
         }
 
-        public async Task UploadFile(MobileServiceFileMetadata metadata)
+        public async Task UploadFileAsync(MobileServiceFileMetadata metadata)
         {
             StorageToken token = await GetStorageToken(metadata.ParentDataItemType, metadata.ParentDataItemId, StoragePermissions.Write);
 

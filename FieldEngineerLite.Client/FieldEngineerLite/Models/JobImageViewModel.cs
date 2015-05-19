@@ -61,17 +61,18 @@ namespace FieldEngineerLite.Models
 
         private async void GetLocalFilePath()
         {
-            if (!file.IsLocalFileCurrent)
-            {
-                await file.DownloadAsync();
-            }
+            // Disabling auto-download.... 
+            //if (!file.IsLocalFileCurrent)
+            //{
+            //    await file.DownloadAsync();
+            //}
             
             FilePath = file.LocalFilePath;
         }
 
         internal async Task DeleteFileAsync()
         {
-            await this.file.DeleteAsync();
+            await App.JobService.DeleteFileAsync(this.job, this.file);
         }
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)

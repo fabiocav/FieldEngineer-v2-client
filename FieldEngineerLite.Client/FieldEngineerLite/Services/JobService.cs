@@ -9,6 +9,7 @@ using FieldEngineerLite.Helpers;
 using FieldEngineerLite.Models;
 using System.Threading;
 using FieldEngineerLite.Files;
+using FieldEngineerLite.Files.Metadata;
 
 namespace FieldEngineerLite
 {
@@ -27,6 +28,8 @@ namespace FieldEngineerLite
         {
             var store = new MobileServiceSQLiteStoreWithLogging("localdata.db");
             store.DefineTable<Job> ();
+            DelegatedFileMetadataStore.DefineTable(store);
+
             await this.MobileService.SyncContext.InitializeAsync(store);
 
             jobTable = this.MobileService.GetSyncTable<Job>();
@@ -41,10 +44,11 @@ namespace FieldEngineerLite
             await this.MobileService.SyncContext.PushAsync();
 
             var query = jobTable.CreateQuery()
-                .Where(job => job.AgentId == "37e865e8-38f1-4e6b-a8ee-b404a188676e")
-                ;
+                .Where(job => job.AgentId == "37e865e8-38f1-4e6b-a8ee-b404a188676e");
 
             await jobTable.PullAsync("myjobs", query);
+
+            await jobTable.PushFileChangesAsync();
 
         }            
 
@@ -111,9 +115,17 @@ namespace FieldEngineerLite
            return await jobTable.GetFilesAsync(job);
         }
 
-        internal async Task<MobileServiceFile> CreateFileFromPath(Job job, string imagePath)
+        internal async Task<MobileServiceFile> AddFileFromPath(Job job, string imagePath)
         {
-            return await this.jobTable.CreateFileFromPath(job, imagePath);
+            MobileServiceFile file = this.jobTable.CreateFileFromPath(job, imagePath);
+            await this.jobTable.AddFileAsync(file);
+
+            return file;
+        }
+
+        internal async Task DeleteFileAsync(Job job, MobileServiceFile file)
+        {
+            await this.jobTable.DeleteFileAsync(job, file);
         }
     }
 

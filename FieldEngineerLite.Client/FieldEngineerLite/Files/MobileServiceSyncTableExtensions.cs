@@ -10,60 +10,82 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Linq;
 using FieldEngineerLite.Files.Operations;
+using System.Threading;
+using FieldEngineerLite.Files.Metadata;
 
 namespace FieldEngineerLite.Files
 {
     public static class MobileServiceSyncTableExtensions
     {
         // TMP
-        internal static IFileMetadataStore metadataStore = new InMemoryFileMetadataStore();
-        private static IFileSyncContext syncContext;
+        internal static IFileMetadataStore metadataStore;
 
         public async static Task<IEnumerable<MobileServiceFile>> GetFilesAsync<T>(this IMobileServiceSyncTable<T> table, T dataItem)
         {
-            string route = string.Format("/tables/{0}/{1}/MobileServiceFiles", table.TableName, GetDataItemId(dataItem));
+            IFileMetadataStore metadataStore = GetMetadataStore(table.MobileServiceClient.SyncContext.Store as MobileServiceLocalStore);
 
-            if (!table.MobileServiceClient.SerializerSettings.Converters.Any(p => p is MobileServiceFileJsonConverter))
-            {
-                table.MobileServiceClient.SerializerSettings.Converters.Add(new MobileServiceFileJsonConverter(table.MobileServiceClient));
-            }
+            var fileMetadata = await metadataStore.GetMetadataAsync(table.TableName, GetDataItemId(dataItem));
 
-            if (syncContext == null)
-            {
-                syncContext = new MobileServiceFileSyncContext(table.MobileServiceClient, metadataStore);
-            }
-
-            IEnumerable<MobileServiceFile> files = await table.MobileServiceClient.InvokeApiAsync<IEnumerable<MobileServiceFile>>(route, HttpMethod.Get, null);
-
-            foreach (var file in files)
-            {
-                var metadata = new MobileServiceFileMetadata
-                {
-                    FileId = file.Id,
-                    FileName = file.Name,
-                    ContentMD5 = file.ContentMD5,
-                    LastSynchronized = DateTime.UtcNow,
-                    Length = file.Length,
-                    LocalPath = file.LocalFilePath,
-                    ParentDataItemType = table.TableName,
-                    ParentDataItemId = file.ParentDataItemId,
-                    Location = file.LocalFileExists ? FileLocation.LocalAndServer : FileLocation.Server,
-                };
-
-                await metadataStore.CreateOrUpdateAsync(metadata);
-            }
-
-            return files;
+            return fileMetadata.Select(m => MobileServiceFile.FromMetadata(table.MobileServiceClient, m));
         }
 
-        public async static Task<MobileServiceFile> CreateFileFromPath<T>(this IMobileServiceSyncTable<T> table, T dataItem, string filePath)
+        private static IFileMetadataStore GetMetadataStore(MobileServiceLocalStore localStore)
         {
-            return await MobileServiceFile.FromFile(table.MobileServiceClient, table.TableName, GetDataItemId(dataItem), filePath);
+            if (metadataStore == null)
+            {
+                //metadataStore = new DelegatedFileMetadataStore(localStore);
+                metadataStore = new DelegatedFileMetadataStore(localStore);
+            }
+
+            return metadataStore;
+        }
+        //public async static Task<IEnumerable<MobileServiceFile>> GetFilesAsync<T>(this IMobileServiceSyncTable<T> table, T dataItem)
+        //{
+        //    string route = string.Format("/tables/{0}/{1}/MobileServiceFiles", table.TableName, GetDataItemId(dataItem));
+
+        //    if (!table.MobileServiceClient.SerializerSettings.Converters.Any(p => p is MobileServiceFileJsonConverter))
+        //    {
+        //        table.MobileServiceClient.SerializerSettings.Converters.Add(new MobileServiceFileJsonConverter(table.MobileServiceClient));
+        //    }
+
+        //    IFileSyncContext syncContext = MobileServiceFileSyncContext.GetContext(table.MobileServiceClient, metadataStore);
+
+        //    IEnumerable<MobileServiceFile> files = await table.MobileServiceClient.InvokeApiAsync<IEnumerable<MobileServiceFile>>(route, HttpMethod.Get, null);
+
+        //    foreach (var file in files)
+        //    {
+        //        var metadata = new MobileServiceFileMetadata
+        //        {
+        //            FileId = file.Id,
+        //            FileName = file.Name,
+        //            ContentMD5 = file.ContentMD5,
+        //            LastSynchronized = DateTime.UtcNow,
+        //            Length = file.Length,
+        //            LocalPath = file.LocalFilePath,
+        //            ParentDataItemType = table.TableName,
+        //            ParentDataItemId = file.ParentDataItemId,
+        //            Location = file.LocalFileExists ? FileLocation.LocalAndServer : FileLocation.Server,
+        //        };
+
+        //        await metadataStore.CreateOrUpdateAsync(metadata);
+        //    }
+
+        //    return files;
+        //}
+
+        public static MobileServiceFile CreateFileFromPath<T>(this IMobileServiceSyncTable<T> table, T dataItem, string filePath)
+        {
+            return MobileServiceFile.FromFilePath(table.MobileServiceClient, table.TableName, GetDataItemId(dataItem), filePath);
+        }
+
+        public async static Task PushFileChangesAsync<T>(this IMobileServiceSyncTable<T> table)
+        {
+            IFileSyncContext context = MobileServiceFileSyncContext.GetContext(table.MobileServiceClient, metadataStore);
+            await context.PushChangesAsync(CancellationToken.None);
         }
 
         public async static Task AddFileAsync<T>(this IMobileServiceSyncTable<T> table, MobileServiceFile file)
         {
-
 
             var metadata = new MobileServiceFileMetadata
             {
@@ -72,13 +94,15 @@ namespace FieldEngineerLite.Files
                 Length = file.Length,
                 Location = FileLocation.Local,
                 ContentMD5 = file.ContentMD5,
-                LocalPath = file.LocalFilePath
+                LocalPath = file.LocalFilePath,
+                ParentDataItemId = file.ParentDataItemId,
+                ParentDataItemType = table.TableName
             };
 
             await metadataStore.CreateOrUpdateAsync(metadata);
 
-            
-            // add a "create" operation to the queue
+            IFileSyncContext context = MobileServiceFileSyncContext.GetContext(table.MobileServiceClient, metadataStore);
+            await context.AddFileAsync(file);
         }
 
         public async static Task UploadFileAsync<T>(this IMobileServiceSyncTable<T> table, T dataItem, MobileServiceFile file)
@@ -118,12 +142,14 @@ namespace FieldEngineerLite.Files
 
         public async static Task DeleteFileAsync<T>(this IMobileServiceSyncTable<T> table, T dataItem, MobileServiceFile file)
         {
-            // Add a delete operation to the queue 
-            //  - Check currrent file status and, depending on it, remove previous operations on the file
 
-            string route = string.Format("/tables/{0}/{1}/MobileServiceFiles/{2}", table.TableName, GetDataItemId(dataItem), file.Name);
+            IFileSyncContext context = MobileServiceFileSyncContext.GetContext(table.MobileServiceClient, metadataStore);
+            await context.DeleteFileAsync(file);
 
-            await table.MobileServiceClient.InvokeApiAsync(route, HttpMethod.Delete, null);
+            if (file.LocalFileExists)
+            {
+                File.Delete(file.LocalFilePath);
+            }
         }
 
         private static string GetFilesDirectoryAsync()
@@ -152,48 +178,6 @@ namespace FieldEngineerLite.Files
             string route = string.Format("/tables/{0}/{1}/StorageToken", table.TableName, dataItemId);
 
             return await table.MobileServiceClient.InvokeApiAsync<StorageTokenRequest, StorageToken>(route, tokenRequest);
-        }
-    }
-
-    public interface IFileMetadataStore
-    {
-        Task CreateOrUpdateAsync(MobileServiceFileMetadata metadata);
-
-        MobileServiceFileMetadata GetFileMetadataAsync(string fileId);
-
-        Task DeleteAsync(MobileServiceFileMetadata metadata);
-    }
-
-
-    public class InMemoryFileMetadataStore : IFileMetadataStore
-    {
-        private List<MobileServiceFileMetadata> metadataCollection = new List<MobileServiceFileMetadata>();
-
-        public Task CreateOrUpdateAsync(MobileServiceFileMetadata metadata)
-        {
-
-            if (this.metadataCollection.Any(m => string.Compare(m.FileId, metadata.FileId) == 0))
-            {
-                throw new InvalidOperationException(string.Format("Metadata for file id {0} already exists.", metadata.FileId));
-            }
-
-            this.metadataCollection.Add(metadata);
-
-            return Task.FromResult(0);
-        }
-
-        
-        public MobileServiceFileMetadata GetFileMetadataAsync(string fileId)
-        {
-            return this.metadataCollection.FirstOrDefault(m => string.Compare(m.FileId, fileId) == 0);
-        }
-
-
-        public Task DeleteAsync(MobileServiceFileMetadata metadata)
-        {
-            this.metadataCollection.Remove(metadata);
-
-            return Task.FromResult(0);
         }
     }
 }

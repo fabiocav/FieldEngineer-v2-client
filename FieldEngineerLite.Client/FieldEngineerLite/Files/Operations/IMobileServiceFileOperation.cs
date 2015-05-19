@@ -9,8 +9,6 @@ namespace FieldEngineerLite.Files
     {
         string FileId { get; }
 
-        FileOperationKind Kind { get; }
-
         FileOperationState State { get; }
 
         Task Execute();

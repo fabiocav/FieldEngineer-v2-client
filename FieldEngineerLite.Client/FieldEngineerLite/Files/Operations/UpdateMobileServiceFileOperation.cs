@@ -7,9 +7,9 @@ using Microsoft.WindowsAzure.MobileServices;
 
 namespace FieldEngineerLite.Files.Operations
 {
-    public class CreateMobileServiceFileOperation : MobileServiceFileOperation
+    public class UpdateMobileServiceFileOperation : MobileServiceFileOperation
     {
-        public CreateMobileServiceFileOperation(IMobileServiceClient client, string fileId, IFileMetadataStore metadataStore, BlobStorageProvider storageProvider)
+        public UpdateMobileServiceFileOperation(IMobileServiceClient client, string fileId, IFileMetadataStore metadataStore, BlobStorageProvider storageProvider)
             : base(client, fileId, metadataStore, storageProvider)
         {
         }
@@ -21,16 +21,12 @@ namespace FieldEngineerLite.Files.Operations
             if (metadata != null)
             {
                 await StorageProvider.UploadFileAsync(metadata);
-
-                metadata.Location |= FileLocation.Server;
-                await MetadataStore.CreateOrUpdateAsync(metadata);
             }
         }
 
         public override void OnQueueingNewOperation(IMobileServiceFileOperation operation)
         {
+            throw new NotImplementedException();
         }
     }
-
-
 }

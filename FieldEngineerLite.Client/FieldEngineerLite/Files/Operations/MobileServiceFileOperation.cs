@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using FieldEngineerLite.Files.Metadata;
 using Microsoft.WindowsAzure.MobileServices;
 
 namespace FieldEngineerLite.Files
@@ -9,14 +10,16 @@ namespace FieldEngineerLite.Files
     public abstract class MobileServiceFileOperation : IMobileServiceFileOperation
     {
         private IMobileServiceClient client;
-        private BlobStorageManager storageManager;
+        private BlobStorageProvider storageManager;
         private string fileId;
+        private IFileMetadataStore metadataStore;
 
-        public MobileServiceFileOperation(IMobileServiceClient client, string fileId, IFileMetadataStore metadataStore, BlobStorageManager storageManager)
+        public MobileServiceFileOperation(IMobileServiceClient client, string fileId, IFileMetadataStore metadataStore, BlobStorageProvider storageManager)
         {
             this.fileId = fileId;
             this.client = client;
             this.storageManager = storageManager;
+            this.metadataStore = metadataStore;
         }
 
         public string FileId
@@ -32,16 +35,13 @@ namespace FieldEngineerLite.Files
 
         protected IFileMetadataStore MetadataStore
         {
-            get { return MetadataStore; }
+            get { return this.metadataStore; }
         }
 
-        protected BlobStorageManager StorageManager
+        protected BlobStorageProvider StorageProvider
         {
             get { return this.storageManager; }
         }
-
-        public abstract FileOperationKind Kind { get; }
-
         public FileOperationState State { get; protected set; }
 
         public async Task Execute()

@@ -160,12 +160,12 @@ namespace FieldEngineerLite.ViewModels
 
         internal async Task AddPhotoAsync(string imagePath)
         {
-            MobileServiceFile file = await App.JobService.CreateFileFromPath(this.job, imagePath);
+            MobileServiceFile file = await App.JobService.AddFileFromPath(this.job, imagePath);
             
             this.photos.Add(new JobImageViewModel(this.job, file));
             OnPropertyChanged("Photos");
 
-            await file.UploadAsync();
+            //await file.UploadAsync();
         }
 
         internal async Task DeletePhotoAsync(JobImageViewModel imageViewModel)
