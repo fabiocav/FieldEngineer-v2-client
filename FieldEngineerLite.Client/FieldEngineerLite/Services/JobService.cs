@@ -30,6 +30,7 @@ namespace FieldEngineerLite
             store.DefineTable<Job> ();
             DelegatedFileMetadataStore.DefineTable(store);
 
+            //IFileSyncContext fileSyncContext = MobileServiceFileSyncContext.GetContext(this.MobileService)
             await this.MobileService.SyncContext.InitializeAsync(store);
 
             jobTable = this.MobileService.GetSyncTable<Job>();
@@ -43,13 +44,12 @@ namespace FieldEngineerLite
 
             await this.MobileService.SyncContext.PushAsync();
 
+            await jobTable.PushFileChangesAsync();
+
             var query = jobTable.CreateQuery()
                 .Where(job => job.AgentId == "37e865e8-38f1-4e6b-a8ee-b404a188676e");
 
             await jobTable.PullAsync("myjobs", query);
-
-            await jobTable.PushFileChangesAsync();
-
         }            
 
         public async Task<IEnumerable<Job>> SearchJobs(string searchInput)
@@ -120,12 +120,20 @@ namespace FieldEngineerLite
             MobileServiceFile file = this.jobTable.CreateFileFromPath(job, imagePath);
             await this.jobTable.AddFileAsync(file);
 
+            // "Touching" the file to force it to sync.
+            // This is a simple approach for this demo
+            await this.jobTable.UpdateAsync(job);
+
             return file;
         }
 
         internal async Task DeleteFileAsync(Job job, MobileServiceFile file)
         {
             await this.jobTable.DeleteFileAsync(job, file);
+
+            // "Touching" the file to force it to sync.
+            // This is a simple approach for this demo
+            await this.jobTable.UpdateAsync(job);
         }
     }
 

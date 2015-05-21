@@ -39,7 +39,7 @@ namespace FieldEngineerLite.Files.Operations
 
         public override void OnQueueingNewOperation(IMobileServiceFileOperation operation)
         {
-            throw new NotImplementedException();
+            //
         }
     }
 }

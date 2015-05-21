@@ -12,7 +12,7 @@ namespace FieldEngineerLite.iOS
     internal class MediaProvider : IMediaPicker
     {
 
-        public async Task<string> GetPhotoAsync()
+        public async Task<string> GetPhotoAsync(object context)
         {
             var mediaPicker = new MediaPicker();
             var mediaFile = await mediaPicker.PickPhotoAsync();

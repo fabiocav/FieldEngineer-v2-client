@@ -152,7 +152,7 @@ namespace FieldEngineerLite.Views
             if (job != null)
             {
                 IMediaPicker mediaProvider = DependencyService.Get<IMediaPicker>();
-                string imagePath = await mediaProvider.GetPhotoAsync();
+                string imagePath = await mediaProvider.GetPhotoAsync(App.UIContext);
 
                 await job.AddPhotoAsync(imagePath);
 

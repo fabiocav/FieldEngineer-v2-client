@@ -68,6 +68,7 @@ namespace FieldEngineerLite.Files
             }
         }
 
+
         public Task<bool> QueueOperationAsync(IMobileServiceFileOperation operation)
         {
             bool operationEnqueued = false;

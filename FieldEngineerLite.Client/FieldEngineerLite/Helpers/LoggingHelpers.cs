@@ -21,6 +21,17 @@ namespace FieldEngineerLite.Helpers
             this.logParameters = logParameters;
         }
 
+        public async override Task UpsertAsync(string tableName, IEnumerable<Newtonsoft.Json.Linq.JObject> items, bool ignoreMissingColumns)
+        {
+            
+            await base.UpsertAsync(tableName, items, ignoreMissingColumns);
+
+            if (ignoreMissingColumns) // This flag indicates an upsert operation from the server
+            {
+
+            }
+        }
+
         protected override IList<Newtonsoft.Json.Linq.JObject> ExecuteQuery(string tableName, string sql, IDictionary<string, object> parameters)
         {
             Console.WriteLine (sql);   

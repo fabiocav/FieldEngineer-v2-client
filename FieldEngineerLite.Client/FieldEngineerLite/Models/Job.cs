@@ -35,6 +35,8 @@ namespace FieldEngineerLite.Models
 
         public List<Equipment> Equipments { get; set; }
 
+        public List<MobileServiceFileReference> Files { get; set; }
+
         [Version]
         public string Version { get; set; }
 

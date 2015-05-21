@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,6 +22,8 @@ namespace FieldEngineerLite
 
         public async Task UploadFileAsync(MobileServiceFileMetadata metadata)
         {
+            Debug.WriteLine("FILE MANAGEMENT: Uploading file.");
+
             StorageToken token = await GetStorageToken(metadata.ParentDataItemType, metadata.ParentDataItemId, StoragePermissions.Write);
 
             var container = new CloudBlobContainer(new Uri(token.RawToken));
@@ -35,6 +38,8 @@ namespace FieldEngineerLite
 
         private async Task<StorageToken> GetStorageToken(string tableName, string dataItemId, StoragePermissions permissions)
         {
+            Debug.WriteLine("FILE MANAGEMENT: Retrieving SAS.");
+
             var tokenRequest = new StorageTokenRequest();
             tokenRequest.Permissions = permissions;
 

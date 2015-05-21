@@ -7,6 +7,6 @@ namespace FieldEngineerLite.Helpers
 {
     public interface IMediaPicker
     {
-        Task<string> GetPhotoAsync();
+        Task<string> GetPhotoAsync(object context);
     }
 }
