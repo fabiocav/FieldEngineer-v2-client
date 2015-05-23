@@ -34,7 +34,8 @@ namespace FieldEngineerLite.Files.Metadata
                 { "location", FileLocation.Local.ToString() },
                 { "lastSyncrhonized", DateTime.Now },
                 { "parentDataItemType", string.Empty },
-                { "parentDataItemId", string.Empty }
+                { "parentDataItemId", string.Empty },
+                { "pendingDeletion", false }
             });
         }
 
@@ -69,6 +70,13 @@ namespace FieldEngineerLite.Files.Metadata
 
             return result.ToObject<List<MobileServiceFileMetadata>>();
             //return null;
+        }
+
+
+        public async Task PurgeAsync(string tableName)
+        {
+            var query = MobileServiceTableQueryDescription.Parse(FileMetadataTableName, string.Format("$filter=parentDataItemType eq '{0}'" , tableName));
+            await this.store.DeleteAsync(query);
         }
     }
 }

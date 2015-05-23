@@ -10,30 +10,36 @@ using FieldEngineerLite.Models;
 using System.Threading;
 using FieldEngineerLite.Files;
 using FieldEngineerLite.Files.Metadata;
+using System.IO;
+using System.Net.Http;
+using FieldEngineerLite.Files.Sync;
+using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace FieldEngineerLite
 {
     public class JobService
     {
-         private MobileServiceClient MobileService = new MobileServiceClient(
-            "https://fieldengineerfiles-code.azurewebsites.net",
-            "https://default-sql-westus73e0c3fd2d6645ec9f32852f08e1f38f.azurewebsites.net",
-            "tTWOhHeXaEKuNaONJQPkHVEKxUWzcP58",
-            new LoggingHandler(true)
-        );
+        private MobileServiceClient MobileService = new MobileServiceClient(
+           "https://fieldengineerfiles-code.azurewebsites.net",
+           "https://default-sql-westus73e0c3fd2d6645ec9f32852f08e1f38f.azurewebsites.net",
+           "tTWOhHeXaEKuNaONJQPkHVEKxUWzcP58",
+           new LoggingHandler(true)
+       );
 
         private IMobileServiceSyncTable<Job> jobTable;
 
         public async Task InitializeAsync()
         {
             var store = new MobileServiceSQLiteStoreWithLogging("localdata.db");
-            store.DefineTable<Job> ();
+            store.DefineTable<Job>();
             DelegatedFileMetadataStore.DefineTable(store);
 
             //IFileSyncContext fileSyncContext = MobileServiceFileSyncContext.GetContext(this.MobileService)
             await this.MobileService.SyncContext.InitializeAsync(store);
 
             jobTable = this.MobileService.GetSyncTable<Job>();
+
+            FieldEngineerLite.Files.MobileServiceSyncTableExtensions.InitializeFileSync(new FieldEngieerFileSyncHandler());
         }
 
         public async Task SyncAsync()
@@ -44,20 +50,21 @@ namespace FieldEngineerLite
 
             await this.MobileService.SyncContext.PushAsync();
 
-            await jobTable.PushFileChangesAsync();
+            await this.jobTable.PushFileChangesAsync();
 
             var query = jobTable.CreateQuery()
                 .Where(job => job.AgentId == "37e865e8-38f1-4e6b-a8ee-b404a188676e");
 
             await jobTable.PullAsync("myjobs", query);
-        }            
+        }
 
         public async Task<IEnumerable<Job>> SearchJobs(string searchInput)
         {
-            var query = jobTable.CreateQuery ();
-                
-            if (!string.IsNullOrWhiteSpace(searchInput)) {
-                query = query.Where (job => 
+            var query = jobTable.CreateQuery();
+
+            if (!string.IsNullOrWhiteSpace(searchInput))
+            {
+                query = query.Where(job =>
                     job.JobNumber == searchInput
                     || searchInput.ToUpper().Contains(job.Title.ToUpper()) // workaround bug: these are backwards
                     || searchInput.ToUpper().Contains(job.Status.ToUpper())
@@ -77,7 +84,7 @@ namespace FieldEngineerLite
                 .Take(1)
                 .ToListAsync();
 
-            if(inprogress.Count == 0)
+            if (inprogress.Count == 0)
             {
                 var nextJob = (await jobTable
                     .Where(j => j.Status == Job.PendingStatus)
@@ -96,28 +103,31 @@ namespace FieldEngineerLite
         public async Task ClearAllJobs()
         {
             await jobTable.PurgeAsync(true);
+            await jobTable.PurgeFilesAsync();
             //await jobTable.PurgeAsync ("myjobs", jobTable.CreateQuery(), true, CancellationToken.None);
-            await InitializeAsync ();
+            await InitializeAsync();
         }
 
         private async Task<bool> IsAuthenticated()
         {
-            if(this.MobileService.CurrentUser == null)
+            if (this.MobileService.CurrentUser == null)
             {
                 await this.MobileService.LoginAsync(App.UIContext, MobileServiceAuthenticationProvider.WindowsAzureActiveDirectory);
             }
 
-            return this.MobileService.CurrentUser != null;                
+            return this.MobileService.CurrentUser != null;
         }
 
         internal async Task<IEnumerable<MobileServiceFile>> GetFilesAsync(Job job)
         {
-           return await jobTable.GetFilesAsync(job);
+            return await jobTable.GetFilesAsync(job);
         }
 
         internal async Task<MobileServiceFile> AddFileFromPath(Job job, string imagePath)
         {
-            MobileServiceFile file = this.jobTable.CreateFileFromPath(job, imagePath);
+            string fileName = Path.GetFileName(imagePath);
+            MobileServiceFile file = this.jobTable.CreateFile(job, fileName);
+
             await this.jobTable.AddFileAsync(file);
 
             // "Touching" the file to force it to sync.
@@ -129,7 +139,7 @@ namespace FieldEngineerLite
 
         internal async Task DeleteFileAsync(Job job, MobileServiceFile file)
         {
-            await this.jobTable.DeleteFileAsync(job, file);
+            await this.jobTable.DeleteFileAsync(file);
 
             // "Touching" the file to force it to sync.
             // This is a simple approach for this demo
@@ -137,6 +147,16 @@ namespace FieldEngineerLite
         }
     }
 
-    
+
+    public class FieldEngieerFileSyncHandler : IFileSyncHandler
+    {
+
+        public Task<IMobileServiceFileDataSource> GetDataSource(MobileServiceFileMetadata metadata)
+        {
+            IMobileServiceFileDataSource source = new PathMobileServiceFileDataSource(FileHelper.GetLocalFilePath(metadata.FileName));
+
+            return Task.FromResult(source);
+        }
+    }
 }
 

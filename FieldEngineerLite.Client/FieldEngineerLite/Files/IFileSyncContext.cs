@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using FieldEngineerLite.Files.Sync;
 
 namespace FieldEngineerLite.Files
 {
@@ -15,5 +16,7 @@ namespace FieldEngineerLite.Files
         Task PushChangesAsync(CancellationToken cancellationToken);
 
         Task DeleteFileAsync(MobileServiceFile file);
+
+        IFileSyncHandler SyncHandler { get; }
     }
 }

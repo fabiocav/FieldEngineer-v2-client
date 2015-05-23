@@ -11,7 +11,7 @@ namespace FieldEngineerLite.Files
 
         FileOperationState State { get; }
 
-        Task Execute();
+        Task Execute(IFileSyncContext context);
 
         void OnQueueingNewOperation(IMobileServiceFileOperation operation);
     }

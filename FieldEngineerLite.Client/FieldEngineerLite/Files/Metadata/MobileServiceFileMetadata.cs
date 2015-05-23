@@ -29,6 +29,8 @@ namespace FieldEngineerLite.Files.Metadata
 
         public string ParentDataItemId { get; set; }
 
+        public bool PendingDeletion { get; set; }
+
         public static MobileServiceFileMetadata FromFile(MobileServiceFile file)
         {
             return new MobileServiceFileMetadata
@@ -38,10 +40,8 @@ namespace FieldEngineerLite.Files.Metadata
                 ContentMD5 = file.ContentMD5,
                 LastSynchronized = DateTime.UtcNow,
                 Length = file.Length,
-                LocalPath = file.LocalFilePath,
                 ParentDataItemType = file.TableName,
-                ParentDataItemId = file.ParentDataItemId,
-                Location = file.LocalFileExists ? FileLocation.LocalAndServer : FileLocation.Server,
+                PendingDeletion = false
             };
         }
     }

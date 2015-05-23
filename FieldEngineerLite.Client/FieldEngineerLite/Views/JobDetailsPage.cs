@@ -147,13 +147,13 @@ namespace FieldEngineerLite.Views
 
         private async Task GetImageAsync()
         {
-
             JobViewModel job = this.SelectedJob;
             if (job != null)
             {
                 IMediaPicker mediaProvider = DependencyService.Get<IMediaPicker>();
-                string imagePath = await mediaProvider.GetPhotoAsync(App.UIContext);
+                string sourceImagePath = await mediaProvider.GetPhotoAsync(App.UIContext);
 
+                string imagePath = FileHelper.CopyJobFile(sourceImagePath);
                 await job.AddPhotoAsync(imagePath);
 
                 // Force a refresh

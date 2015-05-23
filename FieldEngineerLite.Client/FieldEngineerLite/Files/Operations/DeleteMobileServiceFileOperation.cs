@@ -17,7 +17,7 @@ namespace FieldEngineerLite.Files.Operations
         {
         }
 
-        protected async override Task ExecuteOperation()
+        protected async override Task ExecuteOperation(IFileSyncContext context)
         {
             MobileServiceFileMetadata metadata = await MetadataStore.GetFileMetadataAsync(FileId);
 

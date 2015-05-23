@@ -44,13 +44,13 @@ namespace FieldEngineerLite.Files
         }
         public FileOperationState State { get; protected set; }
 
-        public async Task Execute()
+        public async Task Execute(IFileSyncContext context)
         {
             try
             {
                 this.State = FileOperationState.InProcess;
 
-                await ExecuteOperation();
+                await ExecuteOperation(context);
             }
             catch
             {
@@ -61,7 +61,7 @@ namespace FieldEngineerLite.Files
             this.State = FileOperationState.Succeeded;
         }
 
-        protected abstract Task ExecuteOperation();
+        protected abstract Task ExecuteOperation(IFileSyncContext context);
 
 
         public abstract void OnQueueingNewOperation(IMobileServiceFileOperation operation);

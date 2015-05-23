@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.WindowsAzure.MobileServices.Sync;
 using Newtonsoft.Json.Linq;
 using FieldEngineerLite.Files.Metadata;
+using FieldEngineerLite.Files.Sync;
 
 namespace FieldEngineerLite.Files
 {
@@ -21,18 +22,20 @@ namespace FieldEngineerLite.Files
         private IFileMetadataStore metadataStore;
         private static ConcurrentDictionary<IMobileServiceClient, IFileSyncContext> contexts = new ConcurrentDictionary<IMobileServiceClient, IFileSyncContext>();
         private SemaphoreSlim processingSemaphore = new SemaphoreSlim(1);
+        private IFileSyncHandler syncHandler;
 
-        public MobileServiceFileSyncContext(IMobileServiceClient client, IFileMetadataStore metadataStore)
+        public MobileServiceFileSyncContext(IMobileServiceClient client, IFileMetadataStore metadataStore, IFileSyncHandler syncHandler)
         {
             this.mobileServiceClient = client;
             this.metadataStore = metadataStore;
+            this.syncHandler = syncHandler;
 
             this.storageProvider = new BlobStorageProvider(client);
         }
 
-        public static IFileSyncContext GetContext(IMobileServiceClient client, IFileMetadataStore metadataStore)
+        public static IFileSyncContext GetContext(IMobileServiceClient client, IFileMetadataStore metadataStore, IFileSyncHandler syncHandler)
         {
-            return contexts.GetOrAdd(client, c => new MobileServiceFileSyncContext(c, metadataStore));
+            return contexts.GetOrAdd(client, c => new MobileServiceFileSyncContext(c, metadataStore, syncHandler));
         }
 
         public async Task AddFileAsync(MobileServiceFile file)
@@ -59,7 +62,7 @@ namespace FieldEngineerLite.Files
                     var operation = operations.Dequeue();
 
                     // This would also take the cancellation token
-                    await operation.Execute();
+                    await operation.Execute(this);
                 }
             }
             finally
@@ -87,6 +90,12 @@ namespace FieldEngineerLite.Files
             }
 
             return Task.FromResult(operationEnqueued);
+        }
+
+
+        public IFileSyncHandler SyncHandler
+        {
+            get { return this.syncHandler; }
         }
     }
 

@@ -12,12 +12,13 @@ using System.Linq;
 using FieldEngineerLite.Files.Operations;
 using System.Threading;
 using FieldEngineerLite.Files.Metadata;
+using FieldEngineerLite.Files.Sync;
 
 namespace FieldEngineerLite.Files
 {
     public static class MobileServiceSyncTableExtensions
     {
-        // TMP
+        private static IFileSyncHandler fileSyncHandler;
         internal static IFileMetadataStore metadataStore;
 
         public async static Task<IEnumerable<MobileServiceFile>> GetFilesAsync<T>(this IMobileServiceSyncTable<T> table, T dataItem)
@@ -26,7 +27,23 @@ namespace FieldEngineerLite.Files
 
             var fileMetadata = await metadataStore.GetMetadataAsync(table.TableName, GetDataItemId(dataItem));
 
-            return fileMetadata.Select(m => MobileServiceFile.FromMetadata(table.MobileServiceClient, m));
+            return fileMetadata.Where(m => !m.PendingDeletion).Select(m => MobileServiceFile.FromMetadata(table.MobileServiceClient, m));
+        }
+
+        internal static void InitializeFileSync(IFileSyncHandler handler)
+        {
+            fileSyncHandler = handler;
+        }
+
+        private static string GetDataItemId(object dataItem)
+        {
+            var job = dataItem as Job;
+            if (job != null)
+            {
+                return job.Id;
+            }
+
+            return null;
         }
 
         private static IFileMetadataStore GetMetadataStore(MobileServiceLocalStore localStore)
@@ -39,6 +56,12 @@ namespace FieldEngineerLite.Files
 
             return metadataStore;
         }
+
+        public static MobileServiceFile CreateFile<T>(this IMobileServiceSyncTable<T> table, T dataItem, string fileName)
+        {
+            return new MobileServiceFile(fileName, table.TableName, GetDataItemId(dataItem));
+        }
+
         //public async static Task<IEnumerable<MobileServiceFile>> GetFilesAsync<T>(this IMobileServiceSyncTable<T> table, T dataItem)
         //{
         //    string route = string.Format("/tables/{0}/{1}/MobileServiceFiles", table.TableName, GetDataItemId(dataItem));
@@ -73,20 +96,22 @@ namespace FieldEngineerLite.Files
         //    return files;
         //}
 
-        public static MobileServiceFile CreateFileFromPath<T>(this IMobileServiceSyncTable<T> table, T dataItem, string filePath)
+        public async static Task PurgeFilesAsync<T>(this IMobileServiceSyncTable<T> table)
         {
-            return MobileServiceFile.FromFilePath(table.MobileServiceClient, table.TableName, GetDataItemId(dataItem), filePath);
+            IFileMetadataStore metadataStore = GetMetadataStore(table.MobileServiceClient.SyncContext.Store as MobileServiceLocalStore);
+
+            await metadataStore.PurgeAsync(table.TableName);
         }
+        
 
         public async static Task PushFileChangesAsync<T>(this IMobileServiceSyncTable<T> table)
         {
-            IFileSyncContext context = MobileServiceFileSyncContext.GetContext(table.MobileServiceClient, metadataStore);
+            IFileSyncContext context = MobileServiceFileSyncContext.GetContext(table.MobileServiceClient, metadataStore, fileSyncHandler);
             await context.PushChangesAsync(CancellationToken.None);
         }
 
         public async static Task AddFileAsync<T>(this IMobileServiceSyncTable<T> table, MobileServiceFile file)
         {
-
             var metadata = new MobileServiceFileMetadata
             {
                 FileId = file.Id,
@@ -94,44 +119,42 @@ namespace FieldEngineerLite.Files
                 Length = file.Length,
                 Location = FileLocation.Local,
                 ContentMD5 = file.ContentMD5,
-                LocalPath = file.LocalFilePath,
-                ParentDataItemId = file.ParentDataItemId,
-                ParentDataItemType = table.TableName
+                ParentDataItemType = file.TableName,
+                ParentDataItemId = file.ParentId
             };
 
             await metadataStore.CreateOrUpdateAsync(metadata);
 
-            IFileSyncContext context = MobileServiceFileSyncContext.GetContext(table.MobileServiceClient, metadataStore);
+            IFileSyncContext context = MobileServiceFileSyncContext.GetContext(table.MobileServiceClient, metadataStore, fileSyncHandler);
             await context.AddFileAsync(file);
         }
 
-        public async static Task UploadFileAsync<T>(this IMobileServiceSyncTable<T> table, T dataItem, MobileServiceFile file)
+        public async static Task UploadFileAsync<T>(this IMobileServiceSyncTable<T> table, MobileServiceFile file, string filePath)
         {
-            StorageToken token = await GetStorageToken(table, GetDataItemId(dataItem), StoragePermissions.Write);
+            StorageToken token = await GetStorageToken(table, file, StoragePermissions.Write);
 
             var container = new CloudBlobContainer(new Uri(token.RawToken));
 
             CloudBlockBlob blob = container.GetBlockBlobReference(file.Name);
 
-            string filePath = Path.Combine(file.LocalFilePath);
             using (var stream = File.OpenRead(filePath))
             {
                 await blob.UploadFromStreamAsync(stream).ContinueWith(t => Console.Write(t.IsFaulted));
             }
         }
 
-        public async static Task DownloadFileAsync<T>(this IMobileServiceSyncTable<T> table, T dataItem, MobileServiceFile file)
+        public async static Task DownloadFileAsync<T>(this IMobileServiceSyncTable<T> table, MobileServiceFile file, string targetPath)
         {
-            using (var stream = File.Create(file.LocalFilePath))
+            using (Stream stream = File.Create(targetPath))
             {
-                await DownloadFileToStreamAsync(table, dataItem, file, stream);
+                await DownloadFileToStreamAsync<T>(table, file, stream);
             }
         }
 
-        public async static Task DownloadFileToStreamAsync<T>(this IMobileServiceSyncTable<T> table, T dataItem, MobileServiceFile file, Stream stream)
+        public async static Task DownloadFileToStreamAsync<T>(this IMobileServiceSyncTable<T> table, MobileServiceFile file, Stream stream)
         {
 
-            StorageToken token = await GetStorageToken(table, GetDataItemId(dataItem), StoragePermissions.Read);
+            StorageToken token = await GetStorageToken(table, file, StoragePermissions.Read);
 
             var container = new CloudBlobContainer(new Uri(token.RawToken));
 
@@ -140,16 +163,15 @@ namespace FieldEngineerLite.Files
             await blob.DownloadToStreamAsync(stream);
         }
 
-        public async static Task DeleteFileAsync<T>(this IMobileServiceSyncTable<T> table, T dataItem, MobileServiceFile file)
+        public async static Task DeleteFileAsync<T>(this IMobileServiceSyncTable<T> table, MobileServiceFile file)
         {
-
-            IFileSyncContext context = MobileServiceFileSyncContext.GetContext(table.MobileServiceClient, metadataStore);
+            IFileSyncContext context = MobileServiceFileSyncContext.GetContext(table.MobileServiceClient, metadataStore, fileSyncHandler);
             await context.DeleteFileAsync(file);
 
-            if (file.LocalFileExists)
-            {
-                File.Delete(file.LocalFilePath);
-            }
+            MobileServiceFileMetadata metadata = await metadataStore.GetFileMetadataAsync(file.Id);
+            metadata.PendingDeletion = true;
+
+            await metadataStore.CreateOrUpdateAsync(metadata);
         }
 
         private static string GetFilesDirectoryAsync()
@@ -164,20 +186,13 @@ namespace FieldEngineerLite.Files
             return filesPath;
         }
 
-        private static string GetDataItemId(object dataItem)
-        {
-            // This would be replaced with the logic used to resolve object IDs
-            return ((Job)dataItem).Id;
-        }
-
-        private async static Task<StorageToken> GetStorageToken(IMobileServiceSyncTable table, string dataItemId, StoragePermissions permissions)
+        private static async Task<StorageToken> GetStorageToken<T>(this IMobileServiceSyncTable<T> table, MobileServiceFile file, StoragePermissions permissions)
         {
             var tokenRequest = new StorageTokenRequest();
             tokenRequest.Permissions = permissions;
 
-            string route = string.Format("/tables/{0}/{1}/StorageToken", table.TableName, dataItemId);
-
-            return await table.MobileServiceClient.InvokeApiAsync<StorageTokenRequest, StorageToken>(route, tokenRequest);
+            return await table.MobileServiceClient.InvokeApiAsync<StorageTokenRequest, StorageToken>("StorageToken", tokenRequest);
         }
+
     }
 }

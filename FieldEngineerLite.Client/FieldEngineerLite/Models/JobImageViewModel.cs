@@ -8,6 +8,8 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Xamarin.Forms;
+using System.IO;
+using FieldEngineerLite.Helpers;
 
 namespace FieldEngineerLite.Models
 {
@@ -25,7 +27,6 @@ namespace FieldEngineerLite.Models
             this.job = job;
         }
 
-
         public string Name
         {
             get { return this.file.Name; }
@@ -37,7 +38,7 @@ namespace FieldEngineerLite.Models
             {
                 if (this.filePath == null)
                 {
-                    GetLocalFilePath();
+                    this.filePath = FileHelper.GetLocalFilePath(this.File.Name);
                 }
 
                 return this.filePath;
@@ -59,17 +60,6 @@ namespace FieldEngineerLite.Models
             get { return this.file; }
         }
 
-        private async void GetLocalFilePath()
-        {
-            // Disabling auto-download.... 
-            //if (!file.IsLocalFileCurrent)
-            //{
-            //    await file.DownloadAsync();
-            //}
-            
-            FilePath = file.LocalFilePath;
-        }
-
         internal async Task DeleteFileAsync()
         {
             await App.JobService.DeleteFileAsync(this.job, this.file);
@@ -83,6 +73,5 @@ namespace FieldEngineerLite.Models
                 temp(this, new PropertyChangedEventArgs(propertyName));
             }
         }
-
     }
 }

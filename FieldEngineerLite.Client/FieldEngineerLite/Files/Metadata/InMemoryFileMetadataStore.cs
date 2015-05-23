@@ -49,5 +49,10 @@ namespace FieldEngineerLite.Files.Metadata
 
             return Task.FromResult(result);
         }
+
+        public Task PurgeAsync(string tableName)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

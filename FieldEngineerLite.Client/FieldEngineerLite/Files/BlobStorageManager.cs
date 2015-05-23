@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FieldEngineerLite.Files;
 using FieldEngineerLite.Files.Metadata;
+using FieldEngineerLite.Files.Sync;
 using Microsoft.WindowsAzure.MobileServices;
 using Microsoft.WindowsAzure.Storage.Blob;
 
@@ -20,7 +21,7 @@ namespace FieldEngineerLite
             this.mobileServiceClient = client;
         }
 
-        public async Task UploadFileAsync(MobileServiceFileMetadata metadata)
+        public async Task UploadFileAsync(MobileServiceFileMetadata metadata, IMobileServiceFileDataSource dataSource)
         {
             Debug.WriteLine("FILE MANAGEMENT: Uploading file.");
 
@@ -30,7 +31,7 @@ namespace FieldEngineerLite
 
             CloudBlockBlob blob = container.GetBlockBlobReference(metadata.FileName);
 
-            using (var stream = File.OpenRead(metadata.LocalPath))
+            using (var stream = await dataSource.GetStream())
             {
                 await blob.UploadFromStreamAsync(stream).ContinueWith(t => Console.Write(t.IsFaulted));
             }

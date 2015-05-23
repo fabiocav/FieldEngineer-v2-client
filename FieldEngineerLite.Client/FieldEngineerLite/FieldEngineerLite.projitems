@@ -12,6 +12,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)App.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Files\BlobStorageManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Files\FileLocation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Files\FileMobileServiceClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Files\IFileSyncContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Files\Metadata\DelegatedFileMetadataStore.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Files\Metadata\IFileMetadataStore.cs" />
@@ -31,6 +32,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Files\StoragePermissions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Files\StorageToken.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Files\StorageTokenRequest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Files\Sync\IFileSyncHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Helpers\FileHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\IMediaPicker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Customer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Equipment.cs" />

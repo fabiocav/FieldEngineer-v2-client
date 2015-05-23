@@ -14,13 +14,14 @@ namespace FieldEngineerLite.Files.Operations
         {
         }
 
-        protected async override Task ExecuteOperation()
+        protected async override Task ExecuteOperation(IFileSyncContext context)
         {
             MobileServiceFileMetadata metadata = await MetadataStore.GetFileMetadataAsync(FileId);
 
             if (metadata != null)
             {
-                await StorageProvider.UploadFileAsync(metadata);
+                var dataSource = await context.SyncHandler.GetDataSource(metadata);
+                await StorageProvider.UploadFileAsync(metadata, dataSource);
             }
         }
 

@@ -15,5 +15,7 @@ namespace FieldEngineerLite.Files.Metadata
         Task DeleteAsync(MobileServiceFileMetadata metadata);
 
         Task<IEnumerable<MobileServiceFileMetadata>> GetMetadataAsync(string tableName, string objectId);
+
+        Task PurgeAsync(string tableName);
     }
 }
