@@ -75,7 +75,19 @@ namespace FieldEngineerLite.Files.Metadata
 
         public async Task PurgeAsync(string tableName)
         {
-            var query = MobileServiceTableQueryDescription.Parse(FileMetadataTableName, string.Format("$filter=parentDataItemType eq '{0}'" , tableName));
+            await PurgeAsync(tableName, null);
+        }
+
+        public async Task PurgeAsync(string tableName, string itemId)
+        {
+            string queryString = string.Format("$filter=parentDataItemType eq '{0}'" , tableName);
+
+            if (!string.IsNullOrEmpty(itemId))
+            {
+                queryString += string.Format(" and parentDataItemId eq '{0}'" , itemId);
+            }
+
+            var query = MobileServiceTableQueryDescription.Parse(FileMetadataTableName, queryString);
             await this.store.DeleteAsync(query);
         }
     }
