@@ -10,6 +10,8 @@ namespace FieldEngineerLite.Files.Sync
     public interface IFileSyncHandler
     {
         Task<IMobileServiceFileDataSource> GetDataSource(MobileServiceFileMetadata metadata);
+
+        Task ProcessNewFileAsync(MobileServiceFile metadata);
     }
 
 
