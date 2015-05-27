@@ -39,6 +39,12 @@ namespace FieldEngineerLite.Models
                 if (this.filePath == null)
                 {
                     this.filePath = FileHelper.GetLocalFilePath(this.File.Name);
+                    
+                    if (!System.IO.File.Exists(this.filePath))
+                    {
+                        DownloadFile();
+                    }
+
                 }
 
                 return this.filePath;
@@ -48,6 +54,11 @@ namespace FieldEngineerLite.Models
                 this.filePath = value;
                 OnPropertyChanged();
             }
+        }
+
+        private async void DownloadFile()
+        {
+            await App.JobService.DownloadFileAsync(File);
         }
 
         public Job Job

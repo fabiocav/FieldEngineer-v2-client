@@ -31,6 +31,8 @@ namespace FieldEngineerLite
         public async Task InitializeAsync()
         {
             var store = new MobileServiceSQLiteStoreWithLogging("localdata.db");
+            store.ItemChanged += StoreItemChanged;
+
             store.DefineTable<Job>();
             DelegatedFileMetadataStore.DefineTable(store);
 
@@ -39,7 +41,26 @@ namespace FieldEngineerLite
 
             jobTable = this.MobileService.GetSyncTable<Job>();
 
-            FieldEngineerLite.Files.MobileServiceSyncTableExtensions.InitializeFileSync(new FieldEngieerFileSyncHandler());
+            FieldEngineerLite.Files.MobileServiceSyncTableExtensions.InitializeFileSync(new FieldEngieerFileSyncHandler(this));
+        }
+
+        private async void StoreItemChanged(object sender, ItemChangedEventArgs e)
+        {
+            if (string.Compare(e.TableName, "Job") == 0)
+            {
+                Job job = await this.jobTable.LookupAsync(e.ItemId);
+
+                if (e.ChangeType == ItemChangeType.AddedOrUpdated)
+                {
+                    // Retrieve files
+                    await this.jobTable.PullFilesAsync(job);
+                }
+                else if (e.ChangeType == ItemChangeType.Deleted)
+                {
+                    // Purge all files
+                    await this.jobTable.PurgeFilesAsync(job);
+                }
+            }
         }
 
         public async Task SyncAsync()
@@ -145,18 +166,14 @@ namespace FieldEngineerLite
             // This is a simple approach for this demo
             await this.jobTable.UpdateAsync(job);
         }
-    }
 
-
-    public class FieldEngieerFileSyncHandler : IFileSyncHandler
-    {
-
-        public Task<IMobileServiceFileDataSource> GetDataSource(MobileServiceFileMetadata metadata)
+        internal async Task DownloadFileAsync(MobileServiceFile file)
         {
-            IMobileServiceFileDataSource source = new PathMobileServiceFileDataSource(FileHelper.GetLocalFilePath(metadata.FileName));
+            string filePath = FileHelper.GetLocalFilePath(file.Name);
 
-            return Task.FromResult(source);
+            await this.jobTable.DownloadFileAsync(file, filePath);
         }
     }
+
 }
 

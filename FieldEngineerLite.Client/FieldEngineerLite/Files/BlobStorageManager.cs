@@ -37,6 +37,17 @@ namespace FieldEngineerLite
             }
         }
 
+        public async Task DownloadFileToStreamAsync<T>(MobileServiceFile file, Stream stream)
+        {
+            StorageToken token = await GetStorageToken(file.TableName, file.ParentId, StoragePermissions.Read);
+
+            var container = new CloudBlobContainer(new Uri(token.RawToken));
+
+            CloudBlob blob = container.GetBlobReference(file.Name);
+
+            await blob.DownloadToStreamAsync(stream);
+        }
+
         private async Task<StorageToken> GetStorageToken(string tableName, string dataItemId, StoragePermissions permissions)
         {
             Debug.WriteLine("FILE MANAGEMENT: Retrieving SAS.");

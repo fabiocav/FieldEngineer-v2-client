@@ -15,6 +15,8 @@ namespace FieldEngineerLite.Files
 
         Task PushChangesAsync(CancellationToken cancellationToken);
 
+        Task PullFilesAsync(string tableName, string itemId);
+
         Task DeleteFileAsync(MobileServiceFile file);
 
         IFileSyncHandler SyncHandler { get; }

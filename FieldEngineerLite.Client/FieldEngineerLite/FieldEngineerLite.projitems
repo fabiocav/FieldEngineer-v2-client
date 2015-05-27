@@ -10,9 +10,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)App.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FieldEngineerFileSyncHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Files\BlobStorageManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Files\FileLocation.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Files\FileMobileServiceClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Files\IFileSyncContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Files\Metadata\DelegatedFileMetadataStore.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Files\Metadata\IFileMetadataStore.cs" />
@@ -38,7 +38,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Models\Customer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Equipment.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Job.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Models\JobImageViewModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\JobImageViewModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModels\JobViewModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\JobCell.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\JobDetailsPage.cs" />

@@ -73,7 +73,7 @@ namespace FieldEngineerLite.Files
 
         internal static MobileServiceFile FromMobileServiceFileInfo(IMobileServiceClient client, MobileServiceFileInfo fileInfo)
         {
-            var file = new MobileServiceFile(fileInfo.Id, fileInfo.Name, fileInfo.ParentDataItemId);
+            var file = new MobileServiceFile(fileInfo.Name, fileInfo.ParentDataItemType, fileInfo.ParentDataItemId);
 
             file.ContentMD5 = fileInfo.ContentMD5;
             file.Metadata = fileInfo.Metadata;
