@@ -13,25 +13,4 @@ namespace FieldEngineerLite.Files.Sync
 
         Task ProcessNewFileAsync(MobileServiceFile metadata);
     }
-
-
-    public interface IMobileServiceFileDataSource
-    {
-        Task<Stream> GetStream();
-    }
-
-    public class PathMobileServiceFileDataSource : IMobileServiceFileDataSource
-    {
-        private string filePath;
-
-        public PathMobileServiceFileDataSource(string filePath)
-        {
-            this.filePath = filePath;
-        }
-
-        public Task<Stream> GetStream()
-        {
-            return Task.FromResult<Stream>(File.OpenRead(filePath));
-        }
-    }
 }
