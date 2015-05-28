@@ -26,13 +26,10 @@ namespace FieldEngineerLite.Files
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            var mobileServiceFile = new MobileServiceFile(string.Empty, string.Empty, string.Empty);
+            var mobileServiceFile = new MobileServiceFile();
             serializer.Populate(reader, mobileServiceFile);
             
             return mobileServiceFile;
-            //MobileServiceFileInfo fileInfo = serializer.Deserialize<MobileServiceFileInfo>(reader);
-
-            //return MobileServiceFile.FromMobileServiceFileInfo(this.mobileServiceClient, fileInfo);
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)

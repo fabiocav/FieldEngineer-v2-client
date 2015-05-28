@@ -25,6 +25,8 @@ namespace FieldEngineerLite.Files
         private string tableName;
         private IDictionary<string, string> metadata;
 
+        internal MobileServiceFile() { }
+
         public MobileServiceFile(string name, string tableName, string parentId)
             : this(name, name, tableName, parentId) { }
 
@@ -70,18 +72,6 @@ namespace FieldEngineerLite.Files
         {
             get { return this.metadata; }
             set { this.metadata = value; }
-        }
-
-        internal static MobileServiceFile FromMobileServiceFileInfo(IMobileServiceClient client, MobileServiceFileInfo fileInfo)
-        {
-            var file = new MobileServiceFile(fileInfo.Name, fileInfo.ParentDataItemType, fileInfo.ParentDataItemId);
-
-            file.ContentMD5 = fileInfo.ContentMD5;
-            //file.LastModified = f
-            file.Metadata = fileInfo.Metadata;
-            file.Length = fileInfo.Length;
-
-            return file;
         }
 
         internal static MobileServiceFile FromMetadata(IMobileServiceClient client, MobileServiceFileMetadata metadata)

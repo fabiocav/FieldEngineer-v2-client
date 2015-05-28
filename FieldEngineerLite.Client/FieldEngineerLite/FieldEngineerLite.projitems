@@ -19,7 +19,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Files\Metadata\InMemoryFileMetadataStore.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Files\Metadata\MobileServiceFileMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Files\MobileServiceFile.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Files\MobileServiceFileInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Files\MobileServiceFileJsonConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Files\MobileServiceFileSyncContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Files\MobileServiceSyncTableExtensions.cs" />
