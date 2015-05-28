@@ -13,28 +13,37 @@ namespace FieldEngineerLite.Helpers
     {
         private bool logResults;
         private bool logParameters;
+        private bool loggingEnabled;
 
         public event EventHandler<ItemChangedEventArgs> ItemChanged;
 
-        public MobileServiceSQLiteStoreWithLogging(string fileName, bool logResults = false, bool logParameters = false)
+        public MobileServiceSQLiteStoreWithLogging(string fileName, bool loggingEnabled = false, bool logResults = false, bool logParameters = false)
             : base(fileName)
         {
+            this.loggingEnabled = loggingEnabled;
             this.logResults = logResults;
             this.logParameters = logParameters;
         }
 
         public async override Task UpsertAsync(string tableName, IEnumerable<Newtonsoft.Json.Linq.JObject> items, bool ignoreMissingColumns)
         {
-
-            await base.UpsertAsync(tableName, items, ignoreMissingColumns);
-
             if (ignoreMissingColumns && !tableName.StartsWith("__")) // This flag indicates an upsert operation from the server
             {
                 foreach (var item in items)
                 {
-                    OnItemChanged(new ItemChangedEventArgs(item["id"].ToString(), tableName, ItemChangeType.AddedOrUpdated));
+                    string id = item["id"].ToString();
+
+                    var currentRecord = await base.LookupAsync(tableName, id);
+                    
+                    // We only want to trigger a change notification if the record has been modified
+                    if (string.Compare(currentRecord[MobileServiceSystemColumns.Version].ToString(), item[MobileServiceSystemColumns.Version].ToString()) != 0)
+                    {
+                        OnItemChanged(new ItemChangedEventArgs(id, tableName, ItemChangeType.AddedOrUpdated));
+                    }
                 }
             }
+
+            await base.UpsertAsync(tableName, items, ignoreMissingColumns);
         }
 
         public async override Task DeleteAsync(string tableName, IEnumerable<string> ids)
@@ -57,14 +66,17 @@ namespace FieldEngineerLite.Helpers
         }
         protected override IList<Newtonsoft.Json.Linq.JObject> ExecuteQuery(string tableName, string sql, IDictionary<string, object> parameters)
         {
-            Console.WriteLine(sql);
+            if (loggingEnabled)
+            {
+                Console.WriteLine(sql);
+            }
 
-            if (logParameters)
+            if (loggingEnabled && logParameters)
                 PrintDictionary(parameters);
 
             var result = base.ExecuteQuery(tableName, sql, parameters);
 
-            if (logResults && result != null)
+            if (loggingEnabled && logResults && result != null)
             {
                 foreach (var token in result)
                     Console.WriteLine(token);
@@ -75,9 +87,12 @@ namespace FieldEngineerLite.Helpers
 
         protected override void ExecuteNonQuery(string sql, IDictionary<string, object> parameters)
         {
-            Console.WriteLine(sql);
+            if (loggingEnabled)
+            {
+                Console.WriteLine(sql);
+            }
 
-            if (logParameters)
+            if (loggingEnabled && logParameters)
                 PrintDictionary(parameters);
 
             base.ExecuteNonQuery(sql, parameters);

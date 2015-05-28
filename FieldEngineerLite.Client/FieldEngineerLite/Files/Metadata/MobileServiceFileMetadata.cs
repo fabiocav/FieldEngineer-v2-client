@@ -23,7 +23,7 @@ namespace FieldEngineerLite.Files.Metadata
 
         public FileLocation Location { get; set; }
 
-        public DateTime? LastSynchronized { get; set; }
+        public DateTimeOffset? LastModified { get; set; }
 
         public string ParentDataItemType { get; set; }
 
@@ -38,7 +38,7 @@ namespace FieldEngineerLite.Files.Metadata
                 FileId = file.Id,
                 FileName = file.Name,
                 ContentMD5 = file.ContentMD5,
-                LastSynchronized = DateTime.UtcNow,
+                LastModified = file.LastModified,
                 Length = file.Length,
                 ParentDataItemType = file.TableName,
                 PendingDeletion = false

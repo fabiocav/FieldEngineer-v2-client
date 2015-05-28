@@ -23,8 +23,6 @@ namespace FieldEngineerLite
 
         public async Task UploadFileAsync(MobileServiceFileMetadata metadata, IMobileServiceFileDataSource dataSource)
         {
-            Debug.WriteLine("FILE MANAGEMENT: Uploading file.");
-
             StorageToken token = await GetStorageToken(metadata.ParentDataItemType, metadata.ParentDataItemId, StoragePermissions.Write);
 
             var container = new CloudBlobContainer(new Uri(token.RawToken));
@@ -34,6 +32,9 @@ namespace FieldEngineerLite
             using (var stream = await dataSource.GetStream())
             {
                 await blob.UploadFromStreamAsync(stream).ContinueWith(t => Console.Write(t.IsFaulted));
+
+                metadata.LastModified = blob.Properties.LastModified;
+                metadata.ContentMD5 = blob.Properties.ContentMD5;
             }
         }
 
@@ -45,13 +46,18 @@ namespace FieldEngineerLite
 
             CloudBlob blob = container.GetBlobReference(file.Name);
 
-            await blob.DownloadToStreamAsync(stream);
+            try
+            {
+                await blob.DownloadToStreamAsync(stream);
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine("Error downloading blob:" + exc.GetType().FullName);
+            }
         }
 
         private async Task<StorageToken> GetStorageToken(string tableName, string dataItemId, StoragePermissions permissions)
         {
-            Debug.WriteLine("FILE MANAGEMENT: Retrieving SAS.");
-
             var tokenRequest = new StorageTokenRequest();
             tokenRequest.Permissions = permissions;
 

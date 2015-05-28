@@ -42,6 +42,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Models\Job.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModels\JobImageViewModel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ViewModels\JobViewModel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Views\DocumentPage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\JobCell.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\JobDetailsPage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\JobGroupingHeaderCell.cs" />
@@ -51,6 +52,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\LoggingHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\JobService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Views\JobHeaderView.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Views\PdfViewer.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Services\" />

@@ -85,6 +85,7 @@
     <None Include="app.config" />
     <None Include="Info.plist" />
     <Compile Include="MediaProvider.cs" />
+    <Compile Include="PdfViewerRenderer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <None Include="packages.config" />
   </ItemGroup>

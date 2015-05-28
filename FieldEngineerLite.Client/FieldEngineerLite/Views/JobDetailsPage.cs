@@ -9,6 +9,7 @@ using FieldEngineerLite.Models;
 using FieldEngineerLite.Files;
 using FieldEngineerLite.ViewModels;
 using System.Windows.Input;
+using System.IO;
 
 namespace FieldEngineerLite.Views
 {
@@ -82,6 +83,19 @@ namespace FieldEngineerLite.Views
 
             var actionsSection = new TableSection("Actions");
 
+            TextCell viewServiceContract = new TextCell
+            {
+                Text = "View Service Contract",
+                TextColor = AppStyle.DefaultActionColor
+            };
+
+            viewServiceContract.Tapped += async delegate
+            {
+                await this.ViewServiceContract();
+            };
+
+            actionsSection.Add(viewServiceContract);
+
             TextCell completeJob = new TextCell
             {
                 Text = "Mark Job as Complete",
@@ -122,6 +136,22 @@ namespace FieldEngineerLite.Views
             };
 
             DeleteCommand = new Command<JobImageViewModel>(async m => await DeleteImageAsync(m));
+        }
+
+        private async Task ViewServiceContract()
+        {
+            MobileServiceFile serviceContract = await this.SelectedJob.GetServiceContract();
+
+            if (serviceContract != null)
+            {
+                var documentPage = new DocumentPage(serviceContract);
+
+                await this.Navigation.PushAsync(documentPage);
+            }
+            else
+            {
+                this.DisplayAlert("No service contract", "There is no service contract available for this record.", "OK");
+            }
         }
 
         public static ICommand DeleteCommand

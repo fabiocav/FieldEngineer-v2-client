@@ -26,8 +26,7 @@ namespace FieldEngineerLite.Files
         private IDictionary<string, string> metadata;
 
         public MobileServiceFile(string name, string tableName, string parentId)
-            : this(name, name, tableName, parentId)
-        { }
+            : this(name, name, tableName, parentId) { }
 
         public MobileServiceFile(string id, string name, string tableName, string parentId)
         {
@@ -65,10 +64,12 @@ namespace FieldEngineerLite.Files
 
         public string ContentMD5 { get; set; }
 
+        public DateTimeOffset? LastModified { get; set; }
+
         public IDictionary<string, string> Metadata
         {
             get { return this.metadata; }
-            private set { this.metadata = value; }
+            set { this.metadata = value; }
         }
 
         internal static MobileServiceFile FromMobileServiceFileInfo(IMobileServiceClient client, MobileServiceFileInfo fileInfo)
@@ -76,6 +77,7 @@ namespace FieldEngineerLite.Files
             var file = new MobileServiceFile(fileInfo.Name, fileInfo.ParentDataItemType, fileInfo.ParentDataItemId);
 
             file.ContentMD5 = fileInfo.ContentMD5;
+            //file.LastModified = f
             file.Metadata = fileInfo.Metadata;
             file.Length = fileInfo.Length;
 
@@ -84,7 +86,7 @@ namespace FieldEngineerLite.Files
 
         internal static MobileServiceFile FromMetadata(IMobileServiceClient client, MobileServiceFileMetadata metadata)
         {
-            var file = new MobileServiceFile(metadata.FileId, metadata.FileName, metadata.ParentDataItemId);
+            var file = new MobileServiceFile(metadata.FileId, metadata.ParentDataItemType, metadata.ParentDataItemId);
 
             file.ContentMD5 = metadata.ContentMD5;
             //file.Metadata = fileInfo.;

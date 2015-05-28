@@ -33,7 +33,14 @@ namespace FieldEngineerLite
 
         public async Task ProcessNewFileAsync(MobileServiceFile file)
         {
-            // TODO: Decide what files to download based on user defined metadata
+            if (file.Metadata != null && 
+                file.Metadata.ContainsKey("isServiceContract") && 
+                string.Compare(file.Metadata["isServiceContract"], "true", true) == 0)
+
+            {
+                return;
+            }
+
             await this.jobService.DownloadFileAsync(file);
         }
     }

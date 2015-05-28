@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.MobileServices.Sync;
 using System.Collections.ObjectModel;
+using FieldEngineerLite.Views;
 
 namespace FieldEngineerLite.ViewModels
 {
@@ -141,7 +142,9 @@ namespace FieldEngineerLite.ViewModels
         {
             IEnumerable<MobileServiceFile> files = await App.JobService.GetFilesAsync(this.job);
 
-            Photos = new ObservableCollection<JobImageViewModel>(files.Select(f => new JobImageViewModel(this.job, f)));
+            Photos = new ObservableCollection<JobImageViewModel>(
+                files.Where(f => !f.Name.EndsWith(".pdf"))
+                .Select(f => new JobImageViewModel(this.job, f)));
         }
 
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -173,6 +176,13 @@ namespace FieldEngineerLite.ViewModels
             await imageViewModel.DeleteFileAsync();
             
             this.Photos.Remove(imageViewModel);
+        }
+
+        internal async Task<MobileServiceFile> GetServiceContract()
+        {
+            IEnumerable<MobileServiceFile> files = await App.JobService.GetFilesAsync(this.job);
+
+            return files.FirstOrDefault(f => f.Name.EndsWith(".pdf"));
         }
     }
 }

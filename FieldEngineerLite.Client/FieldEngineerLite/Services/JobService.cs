@@ -23,7 +23,8 @@ namespace FieldEngineerLite
            "https://fieldengineerfiles-code.azurewebsites.net",
            "https://default-sql-westus73e0c3fd2d6645ec9f32852f08e1f38f.azurewebsites.net",
            "tTWOhHeXaEKuNaONJQPkHVEKxUWzcP58",
-           new LoggingHandler(true)
+           null
+//           new LoggingHandler()
        );
 
         private IMobileServiceSyncTable<Job> jobTable;
@@ -69,9 +70,9 @@ namespace FieldEngineerLite
             //if (!await IsAuthenticated())
             //    return;
 
-            await this.MobileService.SyncContext.PushAsync();
-
             await this.jobTable.PushFileChangesAsync();
+
+            await this.MobileService.SyncContext.PushAsync();
 
             var query = jobTable.CreateQuery()
                 .Where(job => job.AgentId == "37e865e8-38f1-4e6b-a8ee-b404a188676e");
@@ -171,7 +172,12 @@ namespace FieldEngineerLite
         {
             string filePath = FileHelper.GetLocalFilePath(file.Name);
 
-            await this.jobTable.DownloadFileAsync(file, filePath);
+            await DownloadFileAsync(file, filePath);
+        }
+
+        internal async Task DownloadFileAsync(MobileServiceFile file, string path)
+        {
+            await this.jobTable.DownloadFileAsync(file, path);
         }
     }
 

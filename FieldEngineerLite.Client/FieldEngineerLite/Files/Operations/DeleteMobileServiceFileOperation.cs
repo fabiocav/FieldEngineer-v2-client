@@ -23,13 +23,10 @@ namespace FieldEngineerLite.Files.Operations
 
             if (metadata != null)
             {
-                if ((metadata.Location & FileLocation.Local) == FileLocation.Local)
-                {
-                    await MetadataStore.DeleteAsync(metadata);
-                
-                    string route = string.Format("/tables/{0}/{1}/MobileServiceFiles/{2}", metadata.ParentDataItemType, metadata.ParentDataItemId, metadata.FileName);
-                    await MobileClient.InvokeApiAsync(route, HttpMethod.Delete, null);
-                }
+                await MetadataStore.DeleteAsync(metadata);
+
+                string route = string.Format("/tables/{0}/{1}/MobileServiceFiles/{2}", metadata.ParentDataItemType, metadata.ParentDataItemId, metadata.FileName);
+                await MobileClient.InvokeApiAsync(route, HttpMethod.Delete, null);
             }
         }
 

@@ -32,7 +32,7 @@ namespace FieldEngineerLite.Files.Metadata
                 { "contentMD5", string.Empty },
                 { "localPath", string.Empty },
                 { "location", FileLocation.Local.ToString() },
-                { "lastSyncrhonized", DateTime.Now },
+                { "lastModified", string.Empty },
                 { "parentDataItemType", string.Empty },
                 { "parentDataItemId", string.Empty },
                 { "pendingDeletion", false }

@@ -23,7 +23,6 @@ namespace FieldEngineerLite.Files.Operations
                 var dataSource = await context.SyncHandler.GetDataSource(metadata);
                 await StorageProvider.UploadFileAsync(metadata, dataSource);
 
-                metadata.Location |= FileLocation.Server;
                 await MetadataStore.CreateOrUpdateAsync(metadata);
             }
         }

@@ -99,8 +99,6 @@ namespace FieldEngineerLite.Files
 
             foreach (var file in files)
             {
-                Debug.WriteLine("PROCESSING FILE: " + file.Name);
-
                 MobileServiceFileMetadata metadata = await this.metadataStore.GetFileMetadataAsync(file.Id);
 
                 if (metadata == null)
@@ -116,9 +114,9 @@ namespace FieldEngineerLite.Files
                     };
                 }
 
-                if (string.Compare(metadata.ContentMD5, file.ContentMD5, StringComparison.InvariantCulture) != 0)
+                if (string.Compare(metadata.ContentMD5, file.ContentMD5, StringComparison.InvariantCulture) != 0 || metadata.LastModified != file.LastModified)
                 {
-                    metadata.LastSynchronized = DateTime.UtcNow;
+                    metadata.LastModified = file.LastModified;
                     metadata.ContentMD5 = file.ContentMD5;
 
                     await this.metadataStore.CreateOrUpdateAsync(metadata);
