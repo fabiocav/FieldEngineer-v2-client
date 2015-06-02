@@ -27,6 +27,7 @@ namespace FieldEngineerLite.Helpers
 
         public async override Task UpsertAsync(string tableName, IEnumerable<Newtonsoft.Json.Linq.JObject> items, bool ignoreMissingColumns)
         {
+
             if (ignoreMissingColumns && !tableName.StartsWith("__")) // This flag indicates an upsert operation from the server
             {
                 foreach (var item in items)
@@ -34,16 +35,20 @@ namespace FieldEngineerLite.Helpers
                     string id = item["id"].ToString();
 
                     var currentRecord = await base.LookupAsync(tableName, id);
-                    
+
                     // We only want to trigger a change notification if the record has been modified
-                    if (string.Compare(currentRecord[MobileServiceSystemColumns.Version].ToString(), item[MobileServiceSystemColumns.Version].ToString()) != 0)
+                    if (currentRecord == null || string.Compare(currentRecord[MobileServiceSystemColumns.Version].ToString(), item[MobileServiceSystemColumns.Version].ToString()) != 0)
                     {
+                        await base.UpsertAsync(tableName, new[] { item }, ignoreMissingColumns);
+
                         OnItemChanged(new ItemChangedEventArgs(id, tableName, ItemChangeType.AddedOrUpdated));
                     }
                 }
             }
-
-            await base.UpsertAsync(tableName, items, ignoreMissingColumns);
+            else
+            {
+                await base.UpsertAsync(tableName, items, ignoreMissingColumns);
+            }
         }
 
         public async override Task DeleteAsync(string tableName, IEnumerable<string> ids)

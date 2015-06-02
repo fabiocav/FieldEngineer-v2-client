@@ -9,5 +9,7 @@ namespace FieldEngineerLite.Files
         public string RawToken { get; set; }
 
         public StoragePermissions Permissions { get; set; }
+
+        public StorageTokenScope Scope { get; set; }
     }
 }

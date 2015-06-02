@@ -35,7 +35,9 @@ namespace FieldEngineerLite.Files.Metadata
                 { "lastModified", string.Empty },
                 { "parentDataItemType", string.Empty },
                 { "parentDataItemId", string.Empty },
-                { "pendingDeletion", false }
+                { "pendingDeletion", false },
+                { "fileStoreUri", string.Empty },
+                { "metadata", string.Empty },
             });
         }
 
@@ -64,7 +66,7 @@ namespace FieldEngineerLite.Files.Metadata
 
         public async Task<IEnumerable<MobileServiceFileMetadata>> GetMetadataAsync(string tableName, string objectId)
         {
-            var query = MobileServiceTableQueryDescription.Parse(FileMetadataTableName, string.Format("$filter=parentDataItemType eq '{0}' and parentDataItemId eq '{1}'" , tableName, objectId ));
+            var query = MobileServiceTableQueryDescription.Parse(FileMetadataTableName, string.Format("$filter=parentDataItemType eq '{0}' and parentDataItemId eq '{1}'", tableName, objectId));
 
             var result = await this.store.ReadAsync(query);
 
@@ -80,11 +82,11 @@ namespace FieldEngineerLite.Files.Metadata
 
         public async Task PurgeAsync(string tableName, string itemId)
         {
-            string queryString = string.Format("$filter=parentDataItemType eq '{0}'" , tableName);
+            string queryString = string.Format("$filter=parentDataItemType eq '{0}'", tableName);
 
             if (!string.IsNullOrEmpty(itemId))
             {
-                queryString += string.Format(" and parentDataItemId eq '{0}'" , itemId);
+                queryString += string.Format(" and parentDataItemId eq '{0}'", itemId);
             }
 
             var query = MobileServiceTableQueryDescription.Parse(FileMetadataTableName, queryString);

@@ -31,9 +31,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Files\StoragePermissions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Files\StorageToken.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Files\StorageTokenRequest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Files\StorageTokenScope.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Files\Sync\IFileSyncHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Files\Sync\IMobileServiceFileDataSource.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Files\Sync\PathMoileServiceFileDataSource.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Files\Sync\PathMobileServiceFileDataSource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\FileHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\IMediaPicker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Customer.cs" />

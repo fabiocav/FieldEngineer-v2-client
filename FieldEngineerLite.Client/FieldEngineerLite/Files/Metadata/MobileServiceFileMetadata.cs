@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace FieldEngineerLite.Files.Metadata
 {
@@ -31,6 +32,10 @@ namespace FieldEngineerLite.Files.Metadata
 
         public bool PendingDeletion { get; set; }
 
+        public string FileStoreUri { get; set; }
+
+        public string Metadata { get; set; }
+
         public static MobileServiceFileMetadata FromFile(MobileServiceFile file)
         {
             return new MobileServiceFileMetadata
@@ -40,9 +45,22 @@ namespace FieldEngineerLite.Files.Metadata
                 ContentMD5 = file.ContentMD5,
                 LastModified = file.LastModified,
                 Length = file.Length,
+                ParentDataItemId = file.ParentId,
                 ParentDataItemType = file.TableName,
-                PendingDeletion = false
+                FileStoreUri = file.StoreUri,
+                PendingDeletion = false,
+                Metadata = file.Metadata != null ? JsonConvert.SerializeObject(file.Metadata) : null
             };
+        }
+
+        internal IDictionary<string, string> GetMetadataAsDictionary()
+        {
+            if (this.Metadata == null)
+            {
+                return null;
+            }
+
+            return JsonConvert.DeserializeObject<Dictionary<string, string>>(this.Metadata);
         }
     }
 }

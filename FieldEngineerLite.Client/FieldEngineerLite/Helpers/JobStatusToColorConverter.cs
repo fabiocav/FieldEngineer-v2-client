@@ -17,7 +17,7 @@ namespace FieldEngineerLite.Helpers
 
         private Color GetColorFromStatus(string status)
         {
-            switch (status)
+            switch (status.Trim())
             {
                 case Job.InProgressStatus:
                     return Color.Green;

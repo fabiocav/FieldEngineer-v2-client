@@ -68,20 +68,22 @@ namespace FieldEngineerLite.Files
 
         public DateTimeOffset? LastModified { get; set; }
 
+        public string StoreUri { get; set; }
+
         public IDictionary<string, string> Metadata
         {
             get { return this.metadata; }
             set { this.metadata = value; }
         }
 
-        internal static MobileServiceFile FromMetadata(IMobileServiceClient client, MobileServiceFileMetadata metadata)
+        internal static MobileServiceFile FromMetadata(MobileServiceFileMetadata metadata)
         {
             var file = new MobileServiceFile(metadata.FileId, metadata.ParentDataItemType, metadata.ParentDataItemId);
 
             file.ContentMD5 = metadata.ContentMD5;
-            //file.Metadata = fileInfo.;
+            file.LastModified = metadata.LastModified;
             file.Length = metadata.Length;
-
+            file.Metadata = metadata.GetMetadataAsDictionary();
             return file;
         }
 

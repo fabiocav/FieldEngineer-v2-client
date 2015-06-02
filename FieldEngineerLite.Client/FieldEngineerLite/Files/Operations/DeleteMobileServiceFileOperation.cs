@@ -26,7 +26,14 @@ namespace FieldEngineerLite.Files.Operations
                 await MetadataStore.DeleteAsync(metadata);
 
                 string route = string.Format("/tables/{0}/{1}/MobileServiceFiles/{2}", metadata.ParentDataItemType, metadata.ParentDataItemId, metadata.FileName);
-                await MobileClient.InvokeApiAsync(route, HttpMethod.Delete, null);
+
+                var parameters = new Dictionary<string, string>();
+                if (metadata.FileStoreUri != null)
+                {
+                    parameters.Add("x-zumo-filestoreuri", metadata.FileStoreUri);
+                }
+
+                await MobileClient.InvokeApiAsync(route, HttpMethod.Delete, parameters);
             }
         }
 

@@ -28,7 +28,7 @@ namespace FieldEngineerLite.Files
 
             var fileMetadata = await metadataStore.GetMetadataAsync(table.TableName, GetDataItemId(dataItem));
 
-            return fileMetadata.Where(m => !m.PendingDeletion).Select(m => MobileServiceFile.FromMetadata(table.MobileServiceClient, m));
+            return fileMetadata.Where(m => !m.PendingDeletion).Select(m => MobileServiceFile.FromMetadata(m));
         }
 
         internal static void InitializeFileSync(IFileSyncHandler handler)

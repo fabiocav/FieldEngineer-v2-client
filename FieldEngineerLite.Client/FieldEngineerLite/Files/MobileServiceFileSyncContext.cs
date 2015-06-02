@@ -103,18 +103,14 @@ namespace FieldEngineerLite.Files
 
                 if (metadata == null)
                 {
-                    metadata = new MobileServiceFileMetadata
-                    {
-                        FileId = file.Id,
-                        FileName = file.Name,
-                        Length = file.Length,
-                        ParentDataItemType = tableName,
-                        ParentDataItemId = itemId,
-                        PendingDeletion = false
-                    };
+                    metadata = MobileServiceFileMetadata.FromFile(file);
+
+                    metadata.ContentMD5 = null;
+                    metadata.LastModified = null;
                 }
 
-                if (string.Compare(metadata.ContentMD5, file.ContentMD5, StringComparison.InvariantCulture) != 0 || metadata.LastModified != file.LastModified)
+                if (string.Compare(metadata.ContentMD5, file.ContentMD5, StringComparison.InvariantCulture) != 0 || 
+                    (metadata.LastModified == null || metadata.LastModified.Value.ToUniversalTime() != file.LastModified.Value.ToUniversalTime()))
                 {
                     metadata.LastModified = file.LastModified;
                     metadata.ContentMD5 = file.ContentMD5;

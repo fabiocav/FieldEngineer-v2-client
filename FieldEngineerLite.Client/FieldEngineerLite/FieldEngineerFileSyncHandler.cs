@@ -43,5 +43,16 @@ namespace FieldEngineerLite
 
             await this.jobService.DownloadFileAsync(file);
         }
+
+
+        public Task ProcessFileSynchronizationAction(MobileServiceFile file, FileSynchronizationAction action)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task ProcessDeletedFileAsync(MobileServiceFile file)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
