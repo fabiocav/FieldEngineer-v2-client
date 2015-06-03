@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Xamarin.Forms;
 using FieldEngineerLite.Helpers;
 using FieldEngineerLite.Models;
-using FieldEngineerLite.Files;
+using Microsoft.WindowsAzure.MobileServices.Files;
 using FieldEngineerLite.ViewModels;
 using System.Windows.Input;
 using System.IO;

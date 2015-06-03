@@ -1,5 +1,4 @@
-﻿using FieldEngineerLite.Files;
-using FieldEngineerLite.Models;
+﻿using FieldEngineerLite.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -10,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.WindowsAzure.MobileServices.Sync;
 using System.Collections.ObjectModel;
 using FieldEngineerLite.Views;
+using Microsoft.WindowsAzure.MobileServices.Files;
 
 namespace FieldEngineerLite.ViewModels
 {

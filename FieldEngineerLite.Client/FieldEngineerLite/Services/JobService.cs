@@ -8,12 +8,13 @@ using Microsoft.WindowsAzure.MobileServices.Sync;
 using FieldEngineerLite.Helpers;
 using FieldEngineerLite.Models;
 using System.Threading;
-using FieldEngineerLite.Files;
-using FieldEngineerLite.Files.Metadata;
+using Microsoft.WindowsAzure.MobileServices.Files;
+using Microsoft.WindowsAzure.MobileServices.Files.Metadata;
 using System.IO;
 using System.Net.Http;
-using FieldEngineerLite.Files.Sync;
+using Microsoft.WindowsAzure.MobileServices.Files.Sync;
 using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Mobile.Files;
 
 namespace FieldEngineerLite
 {
@@ -35,14 +36,13 @@ namespace FieldEngineerLite
             store.ItemChanged += StoreItemChanged;
 
             store.DefineTable<Job>();
-            DelegatedFileMetadataStore.DefineTable(store);
+            //DelegatedFileMetadataStore.DefineTable(store);
 
+            this.MobileService.InitializeFileSync(new FieldEngieerFileSyncHandler(this), store);
             //IFileSyncContext fileSyncContext = MobileServiceFileSyncContext.GetContext(this.MobileService)
             await this.MobileService.SyncContext.InitializeAsync(store);
 
             jobTable = this.MobileService.GetSyncTable<Job>();
-
-            FieldEngineerLite.Files.MobileServiceSyncTableExtensions.InitializeFileSync(new FieldEngieerFileSyncHandler(this));
         }
 
         private async void StoreItemChanged(object sender, ItemChangedEventArgs e)

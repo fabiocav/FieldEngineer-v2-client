@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using FieldEngineerLite.Files;
+using Microsoft.WindowsAzure.MobileServices.Files;
 using Xamarin.Forms;
 
 namespace FieldEngineerLite.Views

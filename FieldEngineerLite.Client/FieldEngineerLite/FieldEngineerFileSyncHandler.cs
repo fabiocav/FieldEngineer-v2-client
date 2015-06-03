@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using FieldEngineerLite.Files;
-using FieldEngineerLite.Files.Metadata;
-using FieldEngineerLite.Files.Sync;
+using Microsoft.WindowsAzure.MobileServices.Files;
+using Microsoft.WindowsAzure.MobileServices.Files.Metadata;
+using Microsoft.WindowsAzure.MobileServices.Files.Sync;
 using FieldEngineerLite.Helpers;
 
 namespace FieldEngineerLite

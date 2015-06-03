@@ -26,6 +26,8 @@ namespace FieldEngineerLite.Droid
 		
 		public static void UpdateIdValues()
 		{
+			global::Microsoft.WindowsAzure.Mobile.Files.Resource.String.ApplicationName = global::FieldEngineerLite.Droid.Resource.String.ApplicationName;
+			global::Microsoft.WindowsAzure.Mobile.Files.Resource.String.Hello = global::FieldEngineerLite.Droid.Resource.String.Hello;
 			global::Xamarin.Forms.Platform.Resource.String.ApplicationName = global::FieldEngineerLite.Droid.Resource.String.ApplicationName;
 			global::Xamarin.Forms.Platform.Resource.String.Hello = global::FieldEngineerLite.Droid.Resource.String.Hello;
 		}

@@ -1,5 +1,4 @@
-﻿using FieldEngineerLite.Files;
-using Microsoft.WindowsAzure.MobileServices.Sync;
+﻿using Microsoft.WindowsAzure.MobileServices.Sync;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -10,6 +9,7 @@ using System.Threading.Tasks;
 using Xamarin.Forms;
 using System.IO;
 using FieldEngineerLite.Helpers;
+using Microsoft.WindowsAzure.MobileServices.Files;
 
 namespace FieldEngineerLite.Models
 {
