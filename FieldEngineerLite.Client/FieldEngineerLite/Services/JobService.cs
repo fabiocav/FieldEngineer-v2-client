@@ -14,7 +14,6 @@ using System.IO;
 using System.Net.Http;
 using Microsoft.WindowsAzure.MobileServices.Files.Sync;
 using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Mobile.Files;
 
 namespace FieldEngineerLite
 {
@@ -24,8 +23,8 @@ namespace FieldEngineerLite
            "https://fieldengineerfiles-code.azurewebsites.net",
            "https://default-sql-westus73e0c3fd2d6645ec9f32852f08e1f38f.azurewebsites.net",
            "tTWOhHeXaEKuNaONJQPkHVEKxUWzcP58",
-           null
-//           new LoggingHandler()
+           //null
+           new LoggingHandler()
        );
 
         private IMobileServiceSyncTable<Job> jobTable;
